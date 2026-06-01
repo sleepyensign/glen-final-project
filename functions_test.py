@@ -1,4 +1,4 @@
-import pygame, numpy, time, random
+import pygame
 
 # takes tuple (0.5, 0.25) + screen w & h, returns pixel value
 def scale_to_pixel(scaleTup):
