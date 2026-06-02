@@ -1,23 +1,44 @@
 import os, sys, pygame, numpy, time, random
 import functions_test as fc_t
-sys.path.append("imgs/spr_test1")
+import sprite as spr
 
 # pygame setup
 pygame.init()
 pygame.font.init()
+pygame.display.set_caption("The Finals")
 screen = pygame.display.set_mode((pygame.display.Info().current_w,
                                   pygame.display.Info().current_h),
                                   pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 64)
-plr = pygame.image.load("final_project/imgs/spr_test1.jpg")
+
+# Env Vars
+MOVE_SPEED = 5
+
+# Sprite setup
+sprWorldDrawList = []
+sprUIDrawList = [] # later implement
+
+charBobImgDict = {
+    "idle": "final_project/imgs/spr_bob_idle.png",
+    "left": "final_project/imgs/spr_bob_left.png",
+    "right": {"img": "final_project/imgs/spr_bob_left.png", "flip": True},
+    "up": "final_project/imgs/spr_bob_up.png",
+    "down": "final_project/imgs/spr_bob_down.png"
+    }
+charTestImgDict = {
+    "idle": "final_project/imgs/spr_test1.png"
+}
+charBob = spr.CharSprite(charBobImgDict)
+charTest = spr.CharSprite(charTestImgDict)
+sprWorldDrawList.extend([charBob, charTest])
 
 # vars
 running = True
-fc = 0
-
-# Grid variables
+frame_count = 0
 camPos = [0, 0]
+
+# Current issues: Y grid values are inverted because screen space goes positive right and down, not sure if it's worth fixing
 
 while running:
     
@@ -28,36 +49,55 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+    camPosOld = camPos
+    charBobOldPos = (charBob.x, charBob.y)
     
     ### INPUT ###
     keys = pygame.key.get_pressed()
     if keys[pygame.K_s]:
-        camPos[0] -= 1
+        charBob.y += MOVE_SPEED
     if keys[pygame.K_w]:
-        camPos[0] += 1
+        charBob.y -= MOVE_SPEED
     if keys[pygame.K_a]:
-        camPos[1] -= 1
+        charBob.x -= MOVE_SPEED
     if keys[pygame.K_d]:
-        camPos[1] += 1
+        charBob.x += MOVE_SPEED
+    
+    # Camera
+    tempCamAdd = fc_t.sc_to_px((0.5, 0.5))
+    camPos[0] = charBob.x - tempCamAdd[0]
+    camPos[1] = charBob.y - tempCamAdd[1]
     
     # Background
     # will do this later
     
     ### RENDER ###
     # Text
-    fpsTest = font.render("frame " + str(fc), True, (0, 0, 0))
+    fpsTest = font.render("frame " + str(frame_count), True, (0, 0, 0))
     gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
     # Sprite
-    
-    # later use class and pygame.sprite.Sprite.__init__() to get all the attributes of a sprite
+    # Update chars based off cam movement -- later change to a list or smth not just bob maybe
+    if charBobOldPos[1] > charBob.y:
+        charBob.update(charBobImgDict["up"])
+    elif charBobOldPos[1] < charBob.y:
+        charBob.update(charBobImgDict["down"])
+    else:
+        charBob.update(charBobImgDict["idle"])
+    if charBobOldPos[0] > charBob.x:
+        charBob.update(charBobImgDict["left"])
+    elif charBobOldPos[0] < charBob.x:
+        charBob.update(charBobImgDict["right"])
     
     # Incrementaal
-    fc += 1
+    frame_count += 1
     
-    # Blit
+    ### BLIT ###
+    # Text
     screen.blit(fpsTest, (0, 0))
-    screen.blit(gridText, fc_t.scale_to_pixel((0.25, 0.25)))
-    screen.blit(plr, fc_t.scale_to_pixel((0.5, 0.5)))
+    screen.blit(gridText, (0, 60))
+    # Sprite - we are doing a loop & blit because sprite.Group.draw() did NOT work for some reason
+    for sprObj in sprWorldDrawList:
+        screen.blit(sprObj.image, (sprObj.x - camPos[0], sprObj.y - camPos[1]))
     
     # flip() display
     pygame.display.flip()
