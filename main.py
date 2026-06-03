@@ -37,6 +37,7 @@ sprWorldDrawList.extend([charBob, charTest])
 running = True
 frame_count = 0
 camPos = [0, 0]
+takeInput = True
 
 # Current issues: Y grid values are inverted because screen space goes positive right and down, not sure if it's worth fixing
 
@@ -54,14 +55,15 @@ while running:
     
     ### INPUT ###
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_s]:
-        charBob.y += MOVE_SPEED
-    if keys[pygame.K_w]:
-        charBob.y -= MOVE_SPEED
-    if keys[pygame.K_a]:
-        charBob.x -= MOVE_SPEED
-    if keys[pygame.K_d]:
-        charBob.x += MOVE_SPEED
+    if takeInput == True:
+        if keys[pygame.K_s]:
+            charBob.y += MOVE_SPEED
+        if keys[pygame.K_w]:
+            charBob.y -= MOVE_SPEED
+        if keys[pygame.K_a]:
+            charBob.x -= MOVE_SPEED
+        if keys[pygame.K_d]:
+            charBob.x += MOVE_SPEED
     
     # Camera
     tempCamAdd = fc_t.sc_to_px((0.5, 0.5))
