@@ -1,5 +1,4 @@
-import pygame
-import json
+import pygame, json
 
 testMapFile = "final_project/maps/map_final_test_1.tmj"
 testTilemap = "final_project/imgs/tilemap_final_project_1_2.png"

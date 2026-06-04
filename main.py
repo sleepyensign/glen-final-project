@@ -57,24 +57,27 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     camPosOld = camPos
-    charBobOldPos = (charBob.x, charBob.y)
+    charBobOldPos = (charBob.rect.x, charBob.rect.y)
     
     ### INPUT ###
     keys = pygame.key.get_pressed()
     if takeInput == True:
         if keys[pygame.K_s]:
-            charBob.y += MOVE_SPEED
+            charBob.rect.y += MOVE_SPEED
         if keys[pygame.K_w]:
-            charBob.y -= MOVE_SPEED
+            charBob.rect.y -= MOVE_SPEED
         if keys[pygame.K_a]:
-            charBob.x -= MOVE_SPEED
+            charBob.rect.x -= MOVE_SPEED
         if keys[pygame.K_d]:
-            charBob.x += MOVE_SPEED
+            charBob.rect.x += MOVE_SPEED
+    
+    ### COLLISION ###
+    debugAreColliding = theMap.get_rect().colliderect(charBob.rect)
     
     # Camera
     tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
-    camPos[0] = charBob.x - tempCamAdd[0]
-    camPos[1] = charBob.y - tempCamAdd[1]
+    camPos[0] = charBob.rect.x - tempCamAdd[0]
+    camPos[1] = charBob.rect.y - tempCamAdd[1]
     
     # Background
     # will do this later
@@ -83,17 +86,18 @@ while running:
     # Text
     fpsTest = font.render("frame " + str(frame_count), True, (0, 0, 0))
     gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
+    collisionText = font.render("colliding: " + str(debugAreColliding), True, (0, 0, 0))
     # Sprite
     # Update chars based off cam movement -- later change to a list or smth not just bob maybe
-    if charBobOldPos[1] > charBob.y:
+    if charBobOldPos[1] > charBob.rect.y:
         charBob.update(charBobImgDict["up"])
-    elif charBobOldPos[1] < charBob.y:
+    elif charBobOldPos[1] < charBob.rect.y:
         charBob.update(charBobImgDict["down"])
     else:
         charBob.update(charBobImgDict["idle"])
-    if charBobOldPos[0] > charBob.x:
+    if charBobOldPos[0] > charBob.rect.x:
         charBob.update(charBobImgDict["left"])
-    elif charBobOldPos[0] < charBob.x:
+    elif charBobOldPos[0] < charBob.rect.x:
         charBob.update(charBobImgDict["right"])
     
     # Incrementaal
@@ -105,15 +109,19 @@ while running:
     renderScreen.blit(theMap, (-camPos[0], -camPos[1]))
     # Sprite - we are doing a loop & blit because sprite.Group.draw() did NOT work for some reason
     for sprObj in sprWorldDrawList:
-        renderScreen.blit(sprObj.image, (sprObj.x - camPos[0], sprObj.y - camPos[1]))
+        renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
 
-    ## Screen Blit ##
+    ## Screen ##
     # scale render screen and blit to actual screen
     renderScreenScaled = pygame.transform.scale(renderScreen, screen.get_size())
     screen.blit(renderScreenScaled, (0, 0))
     # Text
     screen.blit(fpsTest, (0, 0))
     screen.blit(gridText, (0, 60))
+    screen.blit(collisionText, (0, 120))
+    
+    if frame_count == 150:
+        print(charBob.rect)
     
     # flip() display
     pygame.display.flip()

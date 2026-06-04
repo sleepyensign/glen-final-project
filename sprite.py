@@ -7,10 +7,10 @@ class CharSprite(pygame.sprite.Sprite):
     def __init__(self, imgDict):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(imgDict["idle"])
-        self.x = 500
-        self.y = 500
         self.rect = self.image.get_rect()
-        self.rect.center = (self.image.get_width() / 2, self.image.get_height() / 2)
+        self.rect.x = 500
+        self.rect.y = 500
+        # fix centering issue
         print("Made a sprite")
     
     def update(self, img):
