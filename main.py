@@ -1,6 +1,12 @@
 import os, sys, pygame, numpy, time, random
 import functions_test as fc_t
 import sprite as spr
+import maps
+
+# Env Vars
+MOVE_SPEED = 2
+RENDER_W = 320 * 2
+RENDER_H = 180 * 2
 
 # pygame setup
 pygame.init()
@@ -9,11 +15,9 @@ pygame.display.set_caption("The Finals")
 screen = pygame.display.set_mode((pygame.display.Info().current_w,
                                   pygame.display.Info().current_h),
                                   pygame.FULLSCREEN)
+renderScreen = pygame.Surface((RENDER_W, RENDER_H))
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 64)
-
-# Env Vars
-MOVE_SPEED = 5
 
 # Sprite setup
 sprWorldDrawList = []
@@ -33,6 +37,8 @@ charBob = spr.CharSprite(charBobImgDict)
 charTest = spr.CharSprite(charTestImgDict)
 sprWorldDrawList.extend([charBob, charTest])
 
+theMap = maps.load_map()
+
 # vars
 running = True
 frame_count = 0
@@ -44,7 +50,7 @@ takeInput = True
 while running:
     
     ### SCREEN WIPE ###
-    screen.fill("purple")
+    renderScreen.fill("purple")
     
     ### EVENTS ###
     for event in pygame.event.get():
@@ -66,7 +72,7 @@ while running:
             charBob.x += MOVE_SPEED
     
     # Camera
-    tempCamAdd = fc_t.sc_to_px((0.5, 0.5))
+    tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
     camPos[0] = charBob.x - tempCamAdd[0]
     camPos[1] = charBob.y - tempCamAdd[1]
     
@@ -94,12 +100,20 @@ while running:
     frame_count += 1
     
     ### BLIT ###
+    ## Render Screen ##
+    # Map
+    renderScreen.blit(theMap, (-camPos[0], -camPos[1]))
+    # Sprite - we are doing a loop & blit because sprite.Group.draw() did NOT work for some reason
+    for sprObj in sprWorldDrawList:
+        renderScreen.blit(sprObj.image, (sprObj.x - camPos[0], sprObj.y - camPos[1]))
+
+    ## Screen Blit ##
+    # scale render screen and blit to actual screen
+    renderScreenScaled = pygame.transform.scale(renderScreen, screen.get_size())
+    screen.blit(renderScreenScaled, (0, 0))
     # Text
     screen.blit(fpsTest, (0, 0))
     screen.blit(gridText, (0, 60))
-    # Sprite - we are doing a loop & blit because sprite.Group.draw() did NOT work for some reason
-    for sprObj in sprWorldDrawList:
-        screen.blit(sprObj.image, (sprObj.x - camPos[0], sprObj.y - camPos[1]))
     
     # flip() display
     pygame.display.flip()

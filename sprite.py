@@ -10,7 +10,7 @@ class CharSprite(pygame.sprite.Sprite):
         self.x = 500
         self.y = 500
         self.rect = self.image.get_rect()
-        self.rect.center = (self.x, self.y)
+        self.rect.center = (self.image.get_width() / 2, self.image.get_height() / 2)
         print("Made a sprite")
     
     def update(self, img):
