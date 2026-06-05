@@ -1,0 +1,21 @@
+{
+    "folderName": "Bob",
+    "anims": {
+        "idle": {
+            "src": "spr_bob_idle.png"
+        },
+        "down": {
+            "src": "spr_bob_down.png"
+        },
+        "up": {
+            "src": "spr_bob_up.png"
+        },
+        "left": {
+            "src": "spr_bob_left.png"
+        },
+        "right": {
+            "src": "spr_bob_left.png",
+            "flip": true
+        }
+    }
+}

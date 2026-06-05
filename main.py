@@ -23,18 +23,8 @@ font = pygame.font.Font(None, 64)
 sprWorldDrawList = []
 sprUIDrawList = [] # later implement
 
-charBobImgDict = {
-    "idle": "final_project/imgs/spr_bob_idle.png",
-    "left": "final_project/imgs/spr_bob_left.png",
-    "right": {"img": "final_project/imgs/spr_bob_left.png", "flip": True},
-    "up": "final_project/imgs/spr_bob_up.png",
-    "down": "final_project/imgs/spr_bob_down.png"
-    }
-charTestImgDict = {
-    "idle": "final_project/imgs/spr_test1.png"
-}
-charBob = spr.CharSprite(charBobImgDict)
-charTest = spr.CharSprite(charTestImgDict)
+charBob = spr.CharSprite("final_project/imgs/Bob/animStruct.json")
+charTest = spr.CharSprite("final_project/imgs/spr_test1.png")
 sprWorldDrawList.extend([charBob, charTest])
 
 theMap = maps.load_map()
@@ -90,15 +80,15 @@ while running:
     # Sprite
     # Update chars based off cam movement -- later change to a list or smth not just bob maybe
     if charBobOldPos[1] > charBob.rect.y:
-        charBob.update(charBobImgDict["up"])
+        charBob.update("up")
     elif charBobOldPos[1] < charBob.rect.y:
-        charBob.update(charBobImgDict["down"])
+        charBob.update("down")
     else:
-        charBob.update(charBobImgDict["idle"])
+        charBob.update("idle")
     if charBobOldPos[0] > charBob.rect.x:
-        charBob.update(charBobImgDict["left"])
+        charBob.update("left")
     elif charBobOldPos[0] < charBob.rect.x:
-        charBob.update(charBobImgDict["right"])
+        charBob.update("right")
     
     # Incrementaal
     frame_count += 1
@@ -119,9 +109,6 @@ while running:
     screen.blit(fpsTest, (0, 0))
     screen.blit(gridText, (0, 60))
     screen.blit(collisionText, (0, 120))
-    
-    if frame_count == 150:
-        print(charBob.rect)
     
     # flip() display
     pygame.display.flip()
