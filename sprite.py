@@ -3,36 +3,102 @@ import functions_test as fc_t
 
 # Handles anims for standard sprites and stuff idk yet
 
-class CharSprite(pygame.sprite.Sprite): # FIX FOR NEW CODE AND FEATURES
+class GameSprite(pygame.sprite.Sprite):
+    instances = []
+    
     def __init__(self, imgSrc):
         super().__init__()
         self.images = {}
-        self.image = pygame.image.load("final_project/imgs/spr_test1.png")
+        self.image = pygame.image.load("final_project/imgs/spr_test1.png").convert_alpha()
+        GameSprite.instances.append(self)
         
         # check for string & json or png
         if isinstance(imgSrc, str):
+            
             if imgSrc[-5:] == ".json":
                 # give json to charsprite class
                 with open(imgSrc, "r") as file:
                     self.animData = json.load(file)
                 
-                # load all images once
+                # ONLY LOADS IMAGES INTO MEMORY
                 if isinstance(self.animData, dict):
-                    for k, v in self.animData["anims"].items():
-                        self.images[k] = pygame.image.load("final_project/imgs/" + self.animData["folderName"] + "/" + str(v["src"]))
-                    self.image = self.images["idle"]
+                    if "anims" in self.animData:
+                        for k, v in self.animData["anims"].items():
+                            self.images[k] = pygame.image.load("final_project/imgs/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
+                        self.image = self.images["idle"]
+                    if "sheets" in self.animData:
+                        for k, v in self.animData["sheets"].items():
+                            self.images[k] = pygame.image.load("final_project/imgs/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
+                    
             elif imgSrc[-4:] == ".png":
-                self.image = pygame.image.load(imgSrc)
+                # 1 image sprite
+                self.image = pygame.image.load(imgSrc).convert_alpha()
         
         self.rect = self.image.get_rect()
         self.rect.x = 500
         self.rect.y = 500
-
-    def update(self, anim):
-        print(self.images)
-        self.image = self.images[anim]
-        if "flip" in self.animData["anims"][anim]:
+        self.lastAnimUpdate = pygame.time.get_ticks()
+        self.curAnim = None
+        self.curAnimIndex = 0
+        self.flipped = False
+        
+    def update(self, anim=None, sheet=None): # ran every frame for every
+        if anim:
+            if sheet:
+                self.image = self.images[sheet]
+                if self.flipped == True and anim + "_flipped" in self.animData["sheets"][sheet]["anims"]:
+                    anim = anim + "_flipped"
+                    flipAnim = True
+                else:
+                    flipAnim = False
+                    
+                spriteAnimData = self.animData["sheets"][sheet]["anims"][anim]
+                spriteW, spriteH = self.animData["sheets"][sheet]["w"], self.animData["sheets"][sheet]["h"]
+                spriteRow = 0
+                spriteFr = 15
+                
+                # if new anim reset index
+                if self.curAnim != anim:
+                    self.curAnimIndex = 0
+                    self.curAnim = anim
+                    print(anim + str(pygame.time.get_ticks()))
+                    if "flip" in spriteAnimData:
+                        self.flipped = spriteAnimData["flip"]
+                    
+                if "row" in spriteAnimData:
+                    spriteRow = spriteAnimData["row"]
+                if "fr" in spriteAnimData:
+                    spriteFr = spriteAnimData["fr"]
+                
+                if "from" and "to" in spriteAnimData:
+                    # animation stuff
+                    curTick = pygame.time.get_ticks()
+                    frameTime = 1000 / spriteFr
+                    
+                    if curTick - self.lastAnimUpdate >= frameTime: # this will break if update is called multiple times in 1 frame
+                        print(self.curAnimIndex)
+                        self.curAnimIndex = (
+                            self.curAnimIndex + 1
+                        ) % (spriteAnimData["to"] - spriteAnimData["from"] + 1)
+                        self.lastAnimUpdate += frameTime
+                    
+                    # apply the image from sprs
+                    imgSurface = pygame.Surface((spriteW, spriteH), pygame.SRCALPHA)
+                    imgSurface.blit(self.image, (0, 0), ((spriteAnimData["from"] * spriteW) + (self.curAnimIndex * spriteW), spriteRow * spriteH, spriteW, spriteH))
+                    self.image = imgSurface
+                
+                self.rect.width, self.rect.height = spriteW, spriteH
+            else:
+                self.image = self.images[anim]
+                self.curAnim = anim
+                
+                if "flip" in self.animData["anims"][anim] and self.animData["anims"][anim]["flip"] == True:
+                    self.flipped = True
+                
+                imgRect = self.image.get_rect()
+                self.rect.width, self.rect.height = imgRect.width, imgRect.height
+    
+        # universal
+        if self.flipped == True and flipAnim == False:
             self.image = pygame.transform.flip(self.image, True, False)
-        if "from" and "to" in self.animData["anims"][anim]:
-            print("ahhhh")
-            # will allow for animations and stuff, thinking lastAnimUpdate += 1 at framerate, default 30 or something unless def in json
+            print("FLIPPING")

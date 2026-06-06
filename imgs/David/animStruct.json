@@ -1,0 +1,45 @@
+{
+    "folderName": "David",
+    "sheets": {
+        "regular": {
+            "src": "sprs_david_regular.png",
+            "w": 16,
+            "h": 32,
+            "anims": {
+                "idle": {
+                    "from": 0,
+                    "to": 1,
+                    "fr": 30
+                },
+                "idle_flipped": {
+                    "row": 1,
+                    "from": 0,
+                    "to": 1,
+                    "fr": 30
+                },
+                "left": {
+                    "from": 2,
+                    "to": 5,
+                    "flip": false
+                },
+                "right": {
+                    "from": 6,
+                    "to": 9,
+                    "flip": false
+                },
+                "up": {
+                    "row": 1,
+                    "from": 2,
+                    "to": 5,
+                    "flip": false
+                },
+                "down": {
+                    "row": 1,
+                    "from": 6,
+                    "to": 9,
+                    "flip": false
+                }
+            }
+        }
+    }
+}

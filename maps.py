@@ -14,7 +14,7 @@ def load_map():
     mapW = data["width"]
     mapH = data["height"]
 
-    tilemap = pygame.image.load("final_project/imgs/" + data["tilesets"][0]["name"] + ".png")
+    tilemap = pygame.image.load("final_project/imgs/" + data["tilesets"][0]["name"] + ".png").convert_alpha()
 
     tilemapSurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
 
@@ -32,8 +32,8 @@ def load_map():
             src_x = (tileNum % tiles_per_row) * tileW
             src_y = (tileNum // tiles_per_row) * tileH
             
-            source_rect = pygame.Rect(src_x, src_y, tileW, tileH)
-            tilemapSurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), source_rect)
+            sourceRect = pygame.Rect(src_x, src_y, tileW, tileH)
+            tilemapSurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), sourceRect)
 
     return tilemapSurface
 

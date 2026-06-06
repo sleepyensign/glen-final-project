@@ -4,9 +4,9 @@ import sprite as spr
 import maps
 
 # Env Vars
-MOVE_SPEED = 2
-RENDER_W = 320 * 2
-RENDER_H = 180 * 2
+MOVE_SPEED = 1
+RENDER_W = 320 * 1.5
+RENDER_H = 180 * 1.5
 
 # pygame setup
 pygame.init()
@@ -23,9 +23,9 @@ font = pygame.font.Font(None, 64)
 sprWorldDrawList = []
 sprUIDrawList = [] # later implement
 
-charBob = spr.CharSprite("final_project/imgs/Bob/animStruct.json")
-charTest = spr.CharSprite("final_project/imgs/spr_test1.png")
-sprWorldDrawList.extend([charBob, charTest])
+charPlr = spr.GameSprite("final_project/imgs/David/animStruct.json")
+charTest = spr.GameSprite("final_project/imgs/spr_test1.png")
+sprWorldDrawList.extend([charPlr, charTest])
 
 theMap = maps.load_map()
 
@@ -47,27 +47,27 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     camPosOld = camPos
-    charBobOldPos = (charBob.rect.x, charBob.rect.y)
+    charPlrOldPos = (charPlr.rect.x, charPlr.rect.y)
     
     ### INPUT ###
     keys = pygame.key.get_pressed()
     if takeInput == True:
         if keys[pygame.K_s]:
-            charBob.rect.y += MOVE_SPEED
+            charPlr.rect.y += MOVE_SPEED
         if keys[pygame.K_w]:
-            charBob.rect.y -= MOVE_SPEED
+            charPlr.rect.y -= MOVE_SPEED
         if keys[pygame.K_a]:
-            charBob.rect.x -= MOVE_SPEED
+            charPlr.rect.x -= MOVE_SPEED
         if keys[pygame.K_d]:
-            charBob.rect.x += MOVE_SPEED
+            charPlr.rect.x += MOVE_SPEED
     
     ### COLLISION ###
-    debugAreColliding = theMap.get_rect().colliderect(charBob.rect)
+    debugAreColliding = theMap.get_rect().colliderect(charPlr.rect)
     
     # Camera
     tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
-    camPos[0] = charBob.rect.x - tempCamAdd[0]
-    camPos[1] = charBob.rect.y - tempCamAdd[1]
+    camPos[0] = charPlr.rect.x - tempCamAdd[0]
+    camPos[1] = charPlr.rect.y - tempCamAdd[1]
     
     # Background
     # will do this later
@@ -77,18 +77,19 @@ while running:
     fpsTest = font.render("frame " + str(frame_count), True, (0, 0, 0))
     gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
     collisionText = font.render("colliding: " + str(debugAreColliding), True, (0, 0, 0))
+    tickText = font.render("tick: " + str(pygame.time.get_ticks()), True, (0, 0, 0))
     # Sprite
     # Update chars based off cam movement -- later change to a list or smth not just bob maybe
-    if charBobOldPos[1] > charBob.rect.y:
-        charBob.update("up")
-    elif charBobOldPos[1] < charBob.rect.y:
-        charBob.update("down")
+    if charPlrOldPos[0] > charPlr.rect.x:
+        charPlr.update("left", "regular")
+    elif charPlrOldPos[0] < charPlr.rect.x:
+        charPlr.update("right", "regular")
+    elif charPlrOldPos[1] > charPlr.rect.y:
+        charPlr.update("up", "regular")
+    elif charPlrOldPos[1] < charPlr.rect.y:
+        charPlr.update("down", "regular")
     else:
-        charBob.update("idle")
-    if charBobOldPos[0] > charBob.rect.x:
-        charBob.update("left")
-    elif charBobOldPos[0] < charBob.rect.x:
-        charBob.update("right")
+        charPlr.update("idle", "regular")
     
     # Incrementaal
     frame_count += 1
@@ -109,6 +110,7 @@ while running:
     screen.blit(fpsTest, (0, 0))
     screen.blit(gridText, (0, 60))
     screen.blit(collisionText, (0, 120))
+    screen.blit(tickText, (0, 180))
     
     # flip() display
     pygame.display.flip()
