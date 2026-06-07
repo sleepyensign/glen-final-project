@@ -1,7 +1,11 @@
 import pygame, json
+from pathlib import Path
 
-testMapFile = "final_project/maps/map_final_test_1.tmj"
-testTilemap = "final_project/imgs/tilemap_final_project_1_2.png"
+GAME_DIR = Path(__file__).resolve().parent
+MAP_DIR = GAME_DIR / "maps"
+IMG_DIR = GAME_DIR / "imgs"
+
+testMapFile = MAP_DIR / "map_final_test_1.tmj"
 
 # later implement loading different maps through params and stuff
 def load_map():
@@ -14,7 +18,7 @@ def load_map():
     mapW = data["width"]
     mapH = data["height"]
 
-    tilemap = pygame.image.load("final_project/imgs/" + data["tilesets"][0]["name"] + ".png").convert_alpha()
+    tilemap = pygame.image.load(str(IMG_DIR) + "/" + data["tilesets"][0]["name"] + ".png").convert_alpha()
 
     tilemapSurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
 

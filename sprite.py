@@ -1,5 +1,9 @@
 import pygame, json
 import functions_test as fc_t
+from pathlib import Path
+
+GAME_DIR = Path(__file__).resolve().parent
+IMG_DIR = GAME_DIR / "imgs"
 
 # Handles anims for standard sprites and stuff idk yet
 
@@ -9,7 +13,7 @@ class GameSprite(pygame.sprite.Sprite):
     def __init__(self, imgSrc):
         super().__init__()
         self.images = {}
-        self.image = pygame.image.load("final_project/imgs/spr_test1.png").convert_alpha()
+        self.image = pygame.image.load(IMG_DIR / "spr_test1.png").convert_alpha()
         GameSprite.instances.append(self)
         
         # check for string & json or png
@@ -24,11 +28,11 @@ class GameSprite(pygame.sprite.Sprite):
                 if isinstance(self.animData, dict):
                     if "anims" in self.animData:
                         for k, v in self.animData["anims"].items():
-                            self.images[k] = pygame.image.load("final_project/imgs/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
+                            self.images[k] = pygame.image.load(str(IMG_DIR) + "/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
                         self.image = self.images["idle"]
                     if "sheets" in self.animData:
                         for k, v in self.animData["sheets"].items():
-                            self.images[k] = pygame.image.load("final_project/imgs/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
+                            self.images[k] = pygame.image.load(str(IMG_DIR) + "/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
                     
             elif imgSrc[-4:] == ".png":
                 # 1 image sprite

@@ -2,8 +2,11 @@ import os, sys, pygame, numpy, time, random
 import functions_test as fc_t
 import sprite as spr
 import maps
+from pathlib import Path
 
 # Env Vars
+GAME_DIR = Path(__file__).resolve().parent
+IMG_DIR = GAME_DIR / "imgs"
 MOVE_SPEED = 1
 RENDER_W = 320
 RENDER_H = 180
@@ -23,8 +26,8 @@ font = pygame.font.Font(None, 64)
 sprWorldDrawList = []
 sprUIDrawList = [] # later implement
 
-charPlr = spr.GameSprite("final_project/imgs/David/animStruct.json")
-charTest = spr.GameSprite("final_project/imgs/spr_test1.png")
+charPlr = spr.GameSprite(str(IMG_DIR / "David" / "animStruct.json" ))
+charTest = spr.GameSprite(str(IMG_DIR / "spr_test1.png"))
 sprWorldDrawList.extend([charPlr, charTest])
 
 theMap = maps.load_map()
