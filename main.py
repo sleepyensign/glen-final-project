@@ -28,7 +28,10 @@ sprUIDrawList = [] # later implement
 
 charPlr = spr.GameSprite(str(IMG_DIR / "David" / "animStruct.json" ))
 charTest = spr.GameSprite(str(IMG_DIR / "spr_test1.png"))
-sprWorldDrawList.extend([charPlr, charTest])
+charBobNpc = spr.GameSprite(str(IMG_DIR / "Bob" / "animStruct.json"))
+charPlr.rect.center = (200, 200)
+charBobNpc.rect.center = (300, 200)
+sprWorldDrawList.extend([charPlr, charTest, charBobNpc])
 
 theMap = maps.load_map("map_final_test_1.tmj")
 
@@ -90,7 +93,7 @@ while running:
         tickText = font.render("second: " + str(pygame.time.get_ticks() / 1000), True, (0, 0, 0))
         debugText.extend([fpsTest, gridText, collisionText, tickText])
     ## Sprite ##
-    # Update charPlr based off movement
+    # Move sprites, Plr
     if charPlrOldPos[0] > charPlr.rect.centerx:
         charPlr.update(fc, "left", "regular")
     elif charPlrOldPos[0] < charPlr.rect.centerx:
@@ -101,6 +104,11 @@ while running:
         charPlr.update(fc, "down", "regular")
     else:
         charPlr.update(fc, "idle", "regular")
+    # Bob
+    # Need to figure out center, centerx, centery, x, y prop & diff for sprite rect
+    # add function for movement based sprite change for gamesprite class and last position var
+    charBobNpc.rect.centerx -= 1
+    charBobNpc.rect.centery -= 1
     
     # Incremental
     fc += 1
