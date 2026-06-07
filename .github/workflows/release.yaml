@@ -46,10 +46,8 @@ jobs:
           cp -r imgs main.dist/
 
       - name: Zip build
-        shell: bash
         run: |
-          cd main.dist
-          zip -r ../The_Final-${{ runner.os }}.zip .
+          python -c "import shutils; shutils.make_archive('The_Final-${{ runner.os }}', 'zip', 'main.dist')"
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
