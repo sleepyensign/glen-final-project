@@ -30,7 +30,7 @@ charPlr = spr.GameSprite(str(IMG_DIR / "David" / "animStruct.json" ))
 charTest = spr.GameSprite(str(IMG_DIR / "spr_test1.png"))
 sprWorldDrawList.extend([charPlr, charTest])
 
-theMap = maps.load_map()
+theMap = maps.load_map("map_final_test_1.tmj")
 
 # vars
 running = True

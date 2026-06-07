@@ -5,11 +5,9 @@ GAME_DIR = Path(__file__).resolve().parent
 MAP_DIR = GAME_DIR / "maps"
 IMG_DIR = GAME_DIR / "imgs"
 
-testMapFile = MAP_DIR / "map_final_test_1.tmj"
-
 # later implement loading different maps through params and stuff
-def load_map():
-    with open(testMapFile, "r") as file:
+def load_map(mapFile):
+    with open(MAP_DIR / mapFile, "r") as file:
         data = json.load(file)
 
     layers = data["layers"][0]["data"]
