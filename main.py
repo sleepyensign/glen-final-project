@@ -37,6 +37,7 @@ running = True
 fc = 0
 camPos = [0, 0]
 takeInput = True
+debugMenu = False
 
 # Current issues: Y grid values are inverted because screen space goes positive right and down, not sure if it's worth fixing
 
@@ -63,6 +64,10 @@ while running:
             charPlr.rect.centerx -= MOVE_SPEED
         if keys[pygame.K_d]:
             charPlr.rect.centerx += MOVE_SPEED
+        if keys[pygame.K_F3]:
+            debugMenu = True
+        else:
+            debugMenu = False
     
     ### COLLISION ###
     debugAreColliding = theMap.get_rect().colliderect(charPlr.rect)
@@ -75,13 +80,17 @@ while running:
     # Maps ._.
     
     ### RENDER ###
-    # Text
-    fpsTest = font.render("frame " + str(fc), True, (0, 0, 0))
-    gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
-    collisionText = font.render("colliding: " + str(debugAreColliding), True, (0, 0, 0))
-    tickText = font.render("second: " + str(pygame.time.get_ticks() / 1000), True, (0, 0, 0))
-    # Sprite
-    # Update chars based off cam movement -- later change to a list or smth not just bob maybe
+    ## Text ##
+    # Debug #
+    debugText = []
+    if debugMenu == True:
+        fpsTest = font.render("frame " + str(fc), True, (0, 0, 0))
+        gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
+        collisionText = font.render("colliding: " + str(debugAreColliding), True, (0, 0, 0))
+        tickText = font.render("second: " + str(pygame.time.get_ticks() / 1000), True, (0, 0, 0))
+        debugText.extend([fpsTest, gridText, collisionText, tickText])
+    ## Sprite ##
+    # Update charPlr based off movement
     if charPlrOldPos[0] > charPlr.rect.centerx:
         charPlr.update(fc, "left", "regular")
     elif charPlrOldPos[0] < charPlr.rect.centerx:
@@ -93,7 +102,7 @@ while running:
     else:
         charPlr.update(fc, "idle", "regular")
     
-    # Incrementaal
+    # Incremental
     fc += 1
     
     ### BLIT ###
@@ -105,14 +114,12 @@ while running:
         renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
 
     ## Screen ##
-    # scale render screen and blit to actual screen
+    # Scale render screen and blit to actual screen
     renderScreenScaled = pygame.transform.scale(renderScreen, screen.get_size())
     screen.blit(renderScreenScaled, (0, 0))
-    # Text
-    screen.blit(fpsTest, (0, 0))
-    screen.blit(gridText, (0, 60))
-    screen.blit(collisionText, (0, 120))
-    screen.blit(tickText, (0, 180))
+    # Debug menu
+    for i in range(len(debugText)):
+        screen.blit(debugText[i], (0, 60 * i))
     
     # flip() display
     pygame.display.flip()
