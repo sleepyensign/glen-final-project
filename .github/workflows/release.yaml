@@ -47,7 +47,7 @@ jobs:
 
       - name: Zip build
         run: |
-          python -c "import shutils; shutils.make_archive('The_Final-${{ runner.os }}', 'zip', 'main.dist')"
+          python -c "import shutil; shutil.make_archive('The_Final-${{ runner.os }}', 'zip', 'main.dist')"
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
