@@ -1,2 +1,2 @@
 # glen-final-project
-pygame lol
+currently only macOS builds working
