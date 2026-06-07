@@ -37,12 +37,7 @@ jobs:
           pip install nuitka
 
       - name: Build
-        shell: bash
-        run: |
-          python -m nuitka \
-          --standalone \
-          --follow-imports \
-          main.py
+        run: python -m nuitka --standalone --follow-imports main.py
 
       - name: Copy assets
         shell: bash
