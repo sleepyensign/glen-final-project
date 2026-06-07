@@ -1,2 +1,4 @@
 # glen-final-project
-currently only macOS builds working
+game builds are live NOW check the releases tab for the latest release
+
+still haven't tested if they work yet
