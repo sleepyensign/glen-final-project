@@ -1,4 +1,4 @@
-import os, sys, pygame, numpy, time, random
+import os, sys, pygame, time, random
 import functions_test as fc_t
 import sprite as spr
 import maps
