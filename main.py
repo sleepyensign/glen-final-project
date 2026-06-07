@@ -5,8 +5,8 @@ import maps
 
 # Env Vars
 MOVE_SPEED = 1
-RENDER_W = 320 * 1.5
-RENDER_H = 180 * 1.5
+RENDER_W = 320
+RENDER_H = 180
 
 # pygame setup
 pygame.init()
@@ -31,7 +31,7 @@ theMap = maps.load_map()
 
 # vars
 running = True
-frame_count = 0
+fc = 0
 camPos = [0, 0]
 takeInput = True
 
@@ -47,52 +47,51 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     camPosOld = camPos
-    charPlrOldPos = (charPlr.rect.x, charPlr.rect.y)
+    charPlrOldPos = (charPlr.rect.centerx, charPlr.rect.centery)
     
     ### INPUT ###
     keys = pygame.key.get_pressed()
     if takeInput == True:
         if keys[pygame.K_s]:
-            charPlr.rect.y += MOVE_SPEED
+            charPlr.rect.centery += MOVE_SPEED
         if keys[pygame.K_w]:
-            charPlr.rect.y -= MOVE_SPEED
+            charPlr.rect.centery -= MOVE_SPEED
         if keys[pygame.K_a]:
-            charPlr.rect.x -= MOVE_SPEED
+            charPlr.rect.centerx -= MOVE_SPEED
         if keys[pygame.K_d]:
-            charPlr.rect.x += MOVE_SPEED
+            charPlr.rect.centerx += MOVE_SPEED
     
     ### COLLISION ###
     debugAreColliding = theMap.get_rect().colliderect(charPlr.rect)
     
     # Camera
     tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
-    camPos[0] = charPlr.rect.x - tempCamAdd[0]
-    camPos[1] = charPlr.rect.y - tempCamAdd[1]
+    camPos[0] = charPlr.rect.centerx - tempCamAdd[0]
+    camPos[1] = charPlr.rect.centery - tempCamAdd[1]
     
-    # Background
-    # will do this later
+    # Maps ._.
     
     ### RENDER ###
     # Text
-    fpsTest = font.render("frame " + str(frame_count), True, (0, 0, 0))
+    fpsTest = font.render("frame " + str(fc), True, (0, 0, 0))
     gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
     collisionText = font.render("colliding: " + str(debugAreColliding), True, (0, 0, 0))
-    tickText = font.render("tick: " + str(pygame.time.get_ticks()), True, (0, 0, 0))
+    tickText = font.render("second: " + str(pygame.time.get_ticks() / 1000), True, (0, 0, 0))
     # Sprite
     # Update chars based off cam movement -- later change to a list or smth not just bob maybe
-    if charPlrOldPos[0] > charPlr.rect.x:
-        charPlr.update("left", "regular")
-    elif charPlrOldPos[0] < charPlr.rect.x:
-        charPlr.update("right", "regular")
-    elif charPlrOldPos[1] > charPlr.rect.y:
-        charPlr.update("up", "regular")
-    elif charPlrOldPos[1] < charPlr.rect.y:
-        charPlr.update("down", "regular")
+    if charPlrOldPos[0] > charPlr.rect.centerx:
+        charPlr.update(fc, "left", "regular")
+    elif charPlrOldPos[0] < charPlr.rect.centerx:
+        charPlr.update(fc, "right", "regular")
+    elif charPlrOldPos[1] > charPlr.rect.centery:
+        charPlr.update(fc, "up", "regular")
+    elif charPlrOldPos[1] < charPlr.rect.centery:
+        charPlr.update(fc, "down", "regular")
     else:
-        charPlr.update("idle", "regular")
+        charPlr.update(fc, "idle", "regular")
     
     # Incrementaal
-    frame_count += 1
+    fc += 1
     
     ### BLIT ###
     ## Render Screen ##

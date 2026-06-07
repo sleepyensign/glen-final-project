@@ -35,14 +35,14 @@ class GameSprite(pygame.sprite.Sprite):
                 self.image = pygame.image.load(imgSrc).convert_alpha()
         
         self.rect = self.image.get_rect()
-        self.rect.x = 500
-        self.rect.y = 500
-        self.lastAnimUpdate = pygame.time.get_ticks()
-        self.curAnim = None
+        self.rect.centerx = 500
+        self.rect.centery = 500
+        self.lastFrameUpdate = 0
+        self.curAnim = "idle"
         self.curAnimIndex = 0
         self.flipped = False
         
-    def update(self, anim=None, sheet=None): # ran every frame for every
+    def update(self, frameCount, anim=None, sheet=None): # ran every frame for every
         if anim:
             if sheet:
                 self.image = self.images[sheet]
@@ -55,13 +55,12 @@ class GameSprite(pygame.sprite.Sprite):
                 spriteAnimData = self.animData["sheets"][sheet]["anims"][anim]
                 spriteW, spriteH = self.animData["sheets"][sheet]["w"], self.animData["sheets"][sheet]["h"]
                 spriteRow = 0
-                spriteFr = 15
+                spriteFr = 5
                 
                 # if new anim reset index
                 if self.curAnim != anim:
                     self.curAnimIndex = 0
                     self.curAnim = anim
-                    print(anim + str(pygame.time.get_ticks()))
                     if "flip" in spriteAnimData:
                         self.flipped = spriteAnimData["flip"]
                     
@@ -72,16 +71,13 @@ class GameSprite(pygame.sprite.Sprite):
                 
                 if "from" and "to" in spriteAnimData:
                     # animation stuff
-                    curTick = pygame.time.get_ticks()
-                    frameTime = 1000 / spriteFr
                     
-                    if curTick - self.lastAnimUpdate >= frameTime: # this will break if update is called multiple times in 1 frame
-                        print(self.curAnimIndex)
+                    if (frameCount - self.lastFrameUpdate) > spriteFr:
                         self.curAnimIndex = (
                             self.curAnimIndex + 1
                         ) % (spriteAnimData["to"] - spriteAnimData["from"] + 1)
-                        self.lastAnimUpdate += frameTime
-                    
+                        self.lastFrameUpdate = frameCount
+                        
                     # apply the image from sprs
                     imgSurface = pygame.Surface((spriteW, spriteH), pygame.SRCALPHA)
                     imgSurface.blit(self.image, (0, 0), ((spriteAnimData["from"] * spriteW) + (self.curAnimIndex * spriteW), spriteRow * spriteH, spriteW, spriteH))
@@ -101,4 +97,3 @@ class GameSprite(pygame.sprite.Sprite):
         # universal
         if self.flipped == True and flipAnim == False:
             self.image = pygame.transform.flip(self.image, True, False)
-            print("FLIPPING")
