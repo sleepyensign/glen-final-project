@@ -1,0 +1,64 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install nuitka
+
+      - name: Build
+        run: |
+          python -m nuitka \
+            --standalone \
+            --follow-imports \
+            main.py
+
+      - name: Copy assets
+        shell: bash
+        run: |
+          cp -r maps main.dist/
+          cp -r imgs main.dist/
+
+      - name: Zip build
+        shell: bash
+        run: |
+          cd main.dist
+          zip -r ../The_Final-${{ runner.os }}.zip .
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: The_Final-${{ runner.os }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: The_Final-${{ runner.os }}
+          path: The_Final-${{ runner.os }}.zip
