@@ -30,7 +30,7 @@ charPlr = spr.GameSprite(str(IMG_DIR / "David" / "animStruct.json" ))
 charTest = spr.GameSprite(str(IMG_DIR / "spr_test1.png"))
 charBobNpc = spr.GameSprite(str(IMG_DIR / "Bob" / "animStruct.json"))
 charPlr.rect.center = (200, 200)
-charBobNpc.rect.center = (350, 200)
+charBobNpc.rect.center = (300, 200)
 sprWorldDrawList.extend([charPlr, charTest, charBobNpc])
 
 theMap = maps.load_map("map_final_test_1.tmj")
