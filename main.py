@@ -43,6 +43,7 @@ fc = 0
 camPos = [0, 0]
 takeInput = True
 debugMenu = False
+
 # old vars
 oldKeys = pygame.key.get_pressed()
 
