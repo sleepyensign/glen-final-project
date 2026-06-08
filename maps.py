@@ -21,6 +21,8 @@ def load_map(mapFile):
     tilemapSurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
 
     tiles_per_row = tilemap.get_width() // tileW
+    
+    colliderList = []
 
     for mapRow in range(mapH):
         for mapCol in range(mapW):
@@ -36,8 +38,15 @@ def load_map(mapFile):
             
             sourceRect = pygame.Rect(src_x, src_y, tileW, tileH)
             tilemapSurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), sourceRect)
+            
+            if "customColliders" in data and str(tileNum + 1) in data["customColliders"]:
+                colliderData = data["customColliders"][str(tileNum + 1)]
+                newRect = pygame.Rect(colliderData["x"] + (mapCol * tileW), colliderData["y"] + (mapRow * tileH),
+                                      colliderData["w"], colliderData["h"])
+                print(newRect)
+                colliderList.append(newRect)
 
-    return tilemapSurface
+    return tilemapSurface, colliderList
 
 # print(json.dumps(data, indent=4))
 # print(data["layers"][0]["data"])

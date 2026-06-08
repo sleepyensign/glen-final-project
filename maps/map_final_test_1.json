@@ -111,5 +111,19 @@
  "tilewidth":16,
  "type":"map",
  "version":"1.10",
- "width":30
+ "width":30,
+ "customColliders": {
+       "11": {
+              "x": 1,
+              "y": 2,
+              "w": 14,
+              "h": 8
+       },
+       "14": {
+              "x": 0,
+              "y": 0,
+              "w": 16,
+              "h": 8
+       }
+ }
 }
