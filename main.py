@@ -1,14 +1,15 @@
 import os, sys, pygame, time, random
-import functions_test as fc_t
 import sprite as spr
-import maps, collision, keypress
+import maps, collision, keypress, dialogue
 from pathlib import Path
+
 # Env Vars
 GAME_DIR = Path(__file__).resolve().parent
 IMG_DIR = GAME_DIR / "imgs"
 MOVE_SPEED = 1
 RENDER_W = 320
 RENDER_H = 180
+FRAMERATE = 60
 
 # pygame setup
 pygame.init()
@@ -47,6 +48,10 @@ debugMenu = False
 # old vars
 oldKeys = pygame.key.get_pressed()
 
+testText1 = dialogue.sizeText("The industrial revolution and its consequences have been a disaster for the human race.")
+testText2 = dialogue.sizeText("This is a string I made to test several systems in this stupid game.")
+dialogueBox = dialogue.Dialoguer((0.5 * RENDER_W, 0.25 * RENDER_H), fc, testText1)
+
 while running:
 
     ### SCREEN WIPE ###
@@ -80,7 +85,6 @@ while running:
     plrCollisionHits = charPlr.rect.collidelistall(colliderList)
     for item in plrCollisionHits:
         collision.plrColStatic(charPlr.rect, colliderList[item], charPlrOldPos)
-        
 
     # Camera
     tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
@@ -96,13 +100,10 @@ while running:
     if debugMenu == True:
         fpsTest = font.render("frame " + str(fc), True, (0, 0, 0))
         gridText = font.render("pos: " + str(camPos), True, (0, 0, 0))
-        collisionText = font.render(
-            "colliding: " + str(plrCollisionHits), True, (0, 0, 0)
-        )
-        tickText = font.render(
-            "second: " + str(pygame.time.get_ticks() / 1000), True, (0, 0, 0)
-        )
+        collisionText = font.render("colliding: " + str(plrCollisionHits), True, (0, 0, 0))
+        tickText = font.render("second: " + str(pygame.time.get_ticks() / 1000), True, (0, 0, 0))
         debugText.extend([fpsTest, gridText, collisionText, tickText])
+    
     ## Sprite ##
     # Move sprites, Plr
     if charPlrOldPos[0] > charPlr.rect.centerx:
@@ -115,27 +116,33 @@ while running:
         charPlr.update(fc, "down", "regular")
     else:
         charPlr.update(fc, "idle", "regular")
+    
     # Bob
-    # Need to figure out center, centerx, centery, x, y prop & diff for sprite rect
     # add function for movement based sprite change for gamesprite class and last position var
     charBobNpc.rect.centerx -= 1
     charBobNpc.rect.centery -= 1
+    
+    # testing dialogue
+    if fc == 250:
+        dialogueBox.say(fc, testText2)
+    elif fc == 500:
+        dialogueBox.say(fc)
 
-    # Incremental
+    # Frame counter
     fc += 1
 
     ### BLIT ###
     ## Render Screen ##
     # Map
     renderScreen.blit(theMap, (-camPos[0], -camPos[1]))
-    # Sprite - we are doing a loop & blit because sprite.Group.draw() did NOT work for some reason
+    # Sprite
     for sprObj in sprWorldDrawList:
-        renderScreen.blit(
-            sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1])
-        )
+        renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
+    # UI
+    renderScreen.blit(dialogueBox.update(fc), (0.25 * RENDER_W, 0.75 * RENDER_H))
 
     ## Screen ##
-    # Scale render screen and blit to actual screen
+    # Render screen -> screen
     renderScreenScaled = pygame.transform.scale(renderScreen, screen.get_size())
     screen.blit(renderScreenScaled, (0, 0))
     # Debug menu
@@ -146,4 +153,4 @@ while running:
     # flip() display
     pygame.display.flip()
 
-    clock.tick(60)  # limits FPS to 60
+    clock.tick(FRAMERATE)

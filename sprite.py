@@ -1,5 +1,4 @@
 import pygame, json
-import functions_test as fc_t
 from pathlib import Path
 
 GAME_DIR = Path(__file__).resolve().parent
