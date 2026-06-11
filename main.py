@@ -1,6 +1,6 @@
 import os, sys, pygame, time, random
 import sprite as spr
-import maps, collision, keypress, dialogue
+import maps, collision, keypress
 from pathlib import Path
 
 # Env Vars
@@ -14,7 +14,7 @@ FRAMERATE = 60
 # pygame setup
 pygame.init()
 pygame.font.init()
-pygame.display.set_caption("The Finals")
+pygame.display.set_caption("The Final")
 screen = pygame.display.set_mode(
     (pygame.display.Info().current_w, pygame.display.Info().current_h),
     pygame.FULLSCREEN,
@@ -22,6 +22,8 @@ screen = pygame.display.set_mode(
 renderScreen = pygame.Surface((RENDER_W, RENDER_H), pygame.SRCALPHA)
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 64)
+
+import dialogue # after so display module is loaded
 
 # Sprite setup
 sprWorldDrawList = []
@@ -48,9 +50,9 @@ debugMenu = False
 # old vars
 oldKeys = pygame.key.get_pressed()
 
-testText1 = dialogue.sizeText("The industrial revolution and its consequences have been a disaster for the human race.")
-testText2 = dialogue.sizeText("This is a string I made to test several systems in this stupid game.")
-dialogueBox = dialogue.Dialoguer((0.5 * RENDER_W, 0.25 * RENDER_H), fc, testText1)
+testText1 = "The industrial revolution and its consequences have been a disaster for the human race."
+testText2 = "This is a string I made to test several systems in this stupid game."
+dialogueBox = dialogue.Dialoguer((0.5 * RENDER_W, 0.25 * RENDER_H), fc)
 
 while running:
 
@@ -78,6 +80,9 @@ while running:
         
         if keypress.getKeyDown(pygame.K_F3, keys, oldKeys):
             debugMenu = not debugMenu
+            
+        nextDialogue = keypress.getKeyDown(pygame.K_RETURN, keys, oldKeys)
+            
     # After all key stuff
     oldKeys = keys
 
@@ -123,10 +128,15 @@ while running:
     charBobNpc.rect.centery -= 1
     
     # testing dialogue
-    if fc == 250:
+    if fc == 0:
+        dialogueBox.say(fc, testText1)
         dialogueBox.say(fc, testText2)
-    elif fc == 500:
-        dialogueBox.say(fc)
+        dialogueBox.say(fc, "Still testing")
+    if fc == 800:
+        dialogueBox.say(fc, "It's been 800 frames.")
+    if fc == 1500:
+        dialogueBox.say(fc, "It's now been 1500 frames.")
+        dialogueBox.say(fc, "There will be no more messages, goodbye forever, my child...")
 
     # Frame counter
     fc += 1
@@ -139,7 +149,7 @@ while running:
     for sprObj in sprWorldDrawList:
         renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
     # UI
-    renderScreen.blit(dialogueBox.update(fc), (0.25 * RENDER_W, 0.75 * RENDER_H))
+    renderScreen.blit(dialogueBox.update(fc, nextDialogue), (0.25 * RENDER_W, 0.75 * RENDER_H))
 
     ## Screen ##
     # Render screen -> screen
@@ -148,7 +158,6 @@ while running:
     # Debug menu
     for i in range(len(debugText)):
         screen.blit(debugText[i], (0, 60 * i))
-        
 
     # flip() display
     pygame.display.flip()

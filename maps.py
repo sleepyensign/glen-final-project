@@ -43,7 +43,6 @@ def load_map(mapFile):
                 colliderData = data["customColliders"][str(tileNum + 1)]
                 newRect = pygame.Rect(colliderData["x"] + (mapCol * tileW), colliderData["y"] + (mapRow * tileH),
                                       colliderData["w"], colliderData["h"])
-                print(newRect)
                 colliderList.append(newRect)
 
     return tilemapSurface, colliderList

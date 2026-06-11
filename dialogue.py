@@ -1,14 +1,18 @@
 import pygame
 import functions as funcs
+import keypress
 from pathlib import Path
 
 GAME_DIR = Path(__file__).resolve().parent
 FONT_DIR = GAME_DIR / "fonts"
+IMG_DIR = GAME_DIR / "imgs"
 
 pygame.font.init()
 font = pygame.font.Font(FONT_DIR / "LowresPixel-Regular.otf", 10)
 
-def sizeText(text): # TODO: just auto call this for every say() function
+sprsArrow = pygame.image.load(IMG_DIR / "Dialogue_Arrow" / "sprs_dialogue_arrow_2.png").convert_alpha()
+
+def sizeText(text):
     textList = text.split()
     newTextLength = 0
     lengthLimit = 160
@@ -26,22 +30,54 @@ def sizeText(text): # TODO: just auto call this for every say() function
     return newText[1:]
         
 class Dialoguer(pygame.surface.Surface):
-    def __init__(self, size, fc, text="Dialogue box was created", speaker=None):
+    def __init__(self, size, fc):
         super().__init__(size, pygame.SRCALPHA)
         
         self.fill((0, 0, 0, 125))
-        self.text = text
+        self.text = ""
         self.startFrame = fc
-        self.speaker = None
+        self.speaker = None # feature add later
+        self.arrowIndex = 0
+        self.queue = []
     
     def say(self, fc, text="No text in dialoguer.say()"):
         self.fill((0, 0, 0, 125))
-        self.startFrame = fc
-        self.text = text
+        if not text in self.queue:
+            self.queue.append(sizeText(text))
     
-    def update(self, fc):
+    def update(self, fc, nextDialogue):
+        keys = pygame.key.get_pressed()
+        
+        self.fill((0, 0, 0, 125))
+        
+        canContinue = fc - self.startFrame > len(self.text) + 30
+        
+        if len(self.queue) == 0:
+            self.fill((0, 0, 0, 0))
+            return self
+        
+        if nextDialogue:
+            if canContinue:
+                # Press enter & arrow
+                self.startFrame = fc
+                if self.text in self.queue:
+                    self.queue.remove(self.text)
+                    if len(self.queue) > 0:
+                        self.text = self.queue[0]
+            else: # skip dialogue
+                self.startFrame -= 500
+        elif not self.text in self.queue: # mad jank, might need fixing later
+            self.startFrame = fc
+            self.text = self.queue[0]
+            canContinue = False
         
         newText = font.render(self.text[:fc - self.startFrame], False, (255, 255, 255))
+        
+        if canContinue:
+            self.arrowIndex
+            if fc % 10 == 0:
+                self.arrowIndex = fc % 40 / 10
+            self.blit(sprsArrow, (151, 35), (self.arrowIndex * 7, 0, 7, 9))
         
         self.blit(newText, (0, 0))
         return self
