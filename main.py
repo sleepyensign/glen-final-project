@@ -149,6 +149,7 @@ while running:
     # testing dialogue
     if fc == 0:
         dialogueBox.say("Try interacting with some signs!")
+        dialogueBox.say("Some text will run off screen from an unpatched bug.")
 
     # Frame counter
     fc += 1
