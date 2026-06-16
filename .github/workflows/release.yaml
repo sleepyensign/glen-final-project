@@ -45,6 +45,7 @@ jobs:
           cp -r maps main.dist/
           cp -r imgs main.dist/
           cp -r fonts main.dist/
+          cp -r dialogue main.dist/
 
       - name: Zip build
         run: |

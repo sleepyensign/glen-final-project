@@ -51,61 +51,6 @@
          "spacing":0,
          "tilecount":20,
          "tileheight":16,
-         "tiles":[
-                {
-                 "id":10,
-                 "objectgroup":
-                    {
-                     "draworder":"index",
-                     "id":3,
-                     "name":"",
-                     "objects":[
-                            {
-                             "height":7.92820761581373,
-                             "id":2,
-                             "name":"",
-                             "opacity":1,
-                             "rotation":0,
-                             "type":"",
-                             "visible":true,
-                             "width":13.904438515644,
-                             "x":1.04778074217803,
-                             "y":2.05675479020131
-                            }],
-                     "opacity":1,
-                     "type":"objectgroup",
-                     "visible":true,
-                     "x":0,
-                     "y":0
-                    }
-                }, 
-                {
-                 "id":18,
-                 "objectgroup":
-                    {
-                     "draworder":"index",
-                     "id":2,
-                     "name":"",
-                     "objects":[
-                            {
-                             "height":10.8658743633277,
-                             "id":1,
-                             "name":"",
-                             "opacity":1,
-                             "rotation":0,
-                             "type":"",
-                             "visible":true,
-                             "width":15.9495512975988,
-                             "x":0.0388066941547391,
-                             "y":0.0388066941547427
-                            }],
-                     "opacity":1,
-                     "type":"objectgroup",
-                     "visible":true,
-                     "x":0,
-                     "y":0
-                    }
-                }],
          "tilewidth":16
         }],
  "tilewidth":16,
@@ -114,10 +59,10 @@
  "width":30,
  "customColliders": {
        "11": {
-              "x": 1,
-              "y": 2,
-              "w": 14,
-              "h": 8
+              "x": 7,
+              "y": 10,
+              "w": 2,
+              "h": 4
        },
        "14": {
               "x": 0,
@@ -125,5 +70,31 @@
               "w": 16,
               "h": 8
        }
+ },
+ "customInteractors": {
+       "113": {
+              "useCollider": false,
+              "event": [
+                     "dialogue",
+                     "Signs-dlg_sign_grasslands_1"
+              ]
+       },
+       "154": {
+              "useCollider": false,
+              "event": [
+                     "dialogue",
+                     "Signs-dlg_sign_grasslands_2"
+              ]
+       },
+       "392": {
+              "useCollider": false,
+              "event": [
+                     "dialogue",
+                     "Signs-dlg_sign_grasslands_3"
+              ]
+       }
+ },
+ "customOverlays": {
+       "11": "1"
  }
 }

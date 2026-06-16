@@ -1,0 +1,30 @@
+{
+    "David": {
+        "dlg_david_intro": [
+            "I've never thought myself to be the most creative person.",
+            "I don't take art classes.",
+            "I don't take music classes.",
+            "None of the creative... stuff.",
+            "None of it ever interested me.",
+            "I never thought I would be interested in it, never had a reason to.",
+            "Until I met someone who changed everything for me-",
+            "during finals week of my junior year.",
+            "This is that story."
+        ]
+    },
+    "Signs": {
+        "dlg_sign_grasslands_1": [
+            "\"I hope this game goes somewhere and has actual gameplay someday.\"",
+            "Wow me too."
+        ],
+        "dlg_sign_grasslands_2": [
+            "\"The industrial revolution and its consequences have been a disaster for the human race.\"",
+            "I wonder who wrote that...",
+            "Maybe they went to university."
+        ],
+        "dlg_sign_grasslands_3": [
+            "\"The chinese language and it's characters are not supported by my fonts.\"",
+            "哎呀！"
+        ]
+    }
+}

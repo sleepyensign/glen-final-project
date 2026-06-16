@@ -38,6 +38,34 @@
                     "from": 6,
                     "to": 9,
                     "flip": false
+                },
+                "left_idle": {
+                    "row": 2,
+                    "from": 0,
+                    "to": 1,
+                    "fr": 60,
+                    "flip": false
+                },
+                "right_idle": {
+                    "row": 2,
+                    "from": 2,
+                    "to": 3,
+                    "fr": 60,
+                    "flip": true
+                },
+                "up_idle": {
+                    "row": 2,
+                    "from": 4,
+                    "to": 5,
+                    "fr": 60,
+                    "flip": false
+                },
+                "down_idle": {
+                    "row": 2,
+                    "from": 6,
+                    "to": 7,
+                    "fr": 60,
+                    "flip": false
                 }
             }
         }

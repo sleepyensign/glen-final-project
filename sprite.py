@@ -54,7 +54,7 @@ class GameSprite(pygame.sprite.Sprite):
                     flipAnim = True
                 else:
                     flipAnim = False
-                    
+                
                 spriteAnimData = self.animData["sheets"][sheet]["anims"][anim]
                 spriteW, spriteH = self.animData["sheets"][sheet]["w"], self.animData["sheets"][sheet]["h"]
                 spriteRow = 0
@@ -100,3 +100,32 @@ class GameSprite(pygame.sprite.Sprite):
         # universal
         if self.flipped == True and flipAnim == False:
             self.image = pygame.transform.flip(self.image, True, False)
+            
+class PlayerSprite(GameSprite):
+    instances = []
+    
+    def __init__(self, imgSrc):
+        super().__init__(imgSrc)
+        PlayerSprite.instances.append(self)
+        self.direction = "left"
+        self.interactor = self.rect
+    
+    def direct(self, fc, plrOldPos):
+        
+        if plrOldPos[0] > self.rect.centerx:
+            newDirection = "left"
+        elif plrOldPos[0] < self.rect.centerx:
+            newDirection = "right"
+        elif plrOldPos[1] > self.rect.centery:
+            newDirection = "up"
+        elif plrOldPos[1] < self.rect.centery:
+            newDirection = "down"
+        else:
+            newDirection = "idle"
+        
+        if newDirection == "idle": # why do i have to make things complicated
+            newDirection = self.direction + "_idle"
+        else:
+            self.direction = newDirection
+            
+        self.update(fc, newDirection, "regular")

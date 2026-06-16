@@ -1,4 +1,4 @@
-import pygame
+import pygame, json
 import functions as funcs
 import keypress
 from pathlib import Path
@@ -6,6 +6,12 @@ from pathlib import Path
 GAME_DIR = Path(__file__).resolve().parent
 FONT_DIR = GAME_DIR / "fonts"
 IMG_DIR = GAME_DIR / "imgs"
+DIAL_DIR = GAME_DIR / "dialogue"
+
+DIALOGUE_WAIT = 0
+
+with open(DIAL_DIR / "dialogue.json", "r") as file:
+    dialogue = json.load(file)
 
 pygame.font.init()
 font = pygame.font.Font(FONT_DIR / "LowresPixel-Regular.otf", 10)
@@ -40,17 +46,26 @@ class Dialoguer(pygame.surface.Surface):
         self.arrowIndex = 0
         self.queue = []
     
-    def say(self, fc, text="No text in dialoguer.say()"):
+    def say(self, text="No text in dialoguer.say()"):
         self.fill((0, 0, 0, 125))
-        if not text in self.queue:
-            self.queue.append(sizeText(text))
+        
+        splitText = text.split("-")
+        if len(splitText) > 1:
+            self.text = "" # WILL CAUSE PROBLEMS???? WHO KNOWS
+            speaker, dialTag = splitText[0], splitText[1]
+            if speaker in dialogue and dialTag in dialogue[speaker]:
+                for i in range(len(dialogue[speaker][dialTag])):
+                    self.queue.append(sizeText(dialogue[speaker][dialTag][i]))
+        else:
+            if not text in self.queue: # should work
+                self.queue.append(sizeText(text))
     
     def update(self, fc, nextDialogue):
         keys = pygame.key.get_pressed()
         
         self.fill((0, 0, 0, 125))
         
-        canContinue = fc - self.startFrame > len(self.text) + 30
+        canContinue = fc - self.startFrame > len(self.text) + DIALOGUE_WAIT
         
         if len(self.queue) == 0:
             self.fill((0, 0, 0, 0))
@@ -58,6 +73,7 @@ class Dialoguer(pygame.surface.Surface):
         
         if nextDialogue:
             if canContinue:
+                canContinue = False # so arrow dissapears
                 # Press enter & arrow
                 self.startFrame = fc
                 if self.text in self.queue:
