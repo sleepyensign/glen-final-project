@@ -25,6 +25,21 @@
         "dlg_sign_grasslands_3": [
             "\"The chinese language and it's characters are not supported by my fonts.\"",
             "It even broke build v0.1.4 of the game! That's why you can't find it."
+        ],
+        "dlg_sign_grasslands_4": [
+            "\"This is the void.\"",
+            "\"They say if you try to enter, the game will inexplicably crash.\"",
+            "I know it's him."
+        ],
+        "dlg_sign_grasslands_5": [
+            "\"This way - blueworld.\""
+        ],
+        "dlg_sign_blueworld_1": [
+            "\"This way -...\"",
+            "\"...something...\""
+        ],
+        "dlg_sign_blueworld_2": [
+            "\"This way - grasslands.\""
         ]
     }
 }

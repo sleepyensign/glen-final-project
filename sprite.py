@@ -38,8 +38,6 @@ class GameSprite(pygame.sprite.Sprite):
                 self.image = pygame.image.load(imgSrc).convert_alpha()
         
         self.rect = self.image.get_rect()
-        self.rect.centerx = 500
-        self.rect.centery = 500
         self.lastFrameUpdate = 0
         self.curAnim = "idle"
         self.curAnimIndex = 0

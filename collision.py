@@ -7,6 +7,19 @@ edgeDict = { # not used
     "down": 1
 }
 
+class Interactor(pygame.Rect):
+    def __init__(self, x, y, w ,h, event):
+        super().__init__(x, y, w, h)
+        
+        self.event = event
+
+class Trigger(pygame.Rect):
+    def __init__(self, x, y, w, h, event, oneUse=True):
+        super().__init__(x, y, w, h)
+        
+        self.event = event
+        self.oneUse = oneUse
+
 def plrColStatic(plrRect, static, oldPos):
     overlap_left = plrRect.right - static.left
     overlap_right = static.right - plrRect.left
@@ -23,9 +36,3 @@ def plrColStatic(plrRect, static, oldPos):
         plrRect.bottom = static.top
     else:
         plrRect.top = static.bottom
-
-class Interactor(pygame.Rect):
-    def __init__(self, x, y, w ,h, event):
-        super().__init__(x, y, w, h)
-        
-        self.event = event

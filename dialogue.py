@@ -25,7 +25,7 @@ def sizeText(text):
     newText = ""
     
     for i in range(len(textList)):
-        wordLength = len(textList[i]) * 6
+        wordLength = len(textList[i]) * 6 + 4 # 4 for spaces
         if newTextLength + wordLength >= lengthLimit:
             newText = str(newText + "\n" + textList[i])
             lengthLimit += 160
@@ -73,7 +73,7 @@ class Dialoguer(pygame.surface.Surface):
         
         if nextDialogue:
             if canContinue:
-                canContinue = False # so arrow dissapears
+                canContinue = False # so arrow disappears
                 # Press enter & arrow
                 self.startFrame = fc
                 if self.text in self.queue:

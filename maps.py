@@ -25,6 +25,7 @@ def load_map(mapFile):
     
     colliderList = []
     interactorList = []
+    triggerList = []
 
     for mapRow in range(mapH):
         for mapCol in range(mapW):
@@ -64,16 +65,40 @@ def load_map(mapFile):
             if "customInteractors" in data and str(mapRow * mapW + mapCol) in data["customInteractors"]:
                 interactorData = data["customInteractors"][str(mapRow * mapW + mapCol)]
                 
-                if interactorData["useCollider"] == False:
-                    newInteractor = collision.Interactor(mapCol * tileW - tileW / 4, mapRow * tileH - tileH / 4,
-                                                         tileW * 1.5, tileH * 1.5, interactorData["event"])
-                else:
+                if "useCollider" in interactorData and interactorData["useCollider"] == True:
                     newInteractor = collision.Interactor(newCollider.x, newCollider.y,
                                                          newCollider.width, newCollider.height, interactorData["event"])
-                
+                elif "collider" in interactorData:
+                    intColData = interactorData["useCollider"]["collider"]
+                    newInteractor = collision.Interactor(intColData["x"], intColData["y"], intColData["w"], intColData["h"],
+                                                         interactorData["event"])
+                else:
+                    newInteractor = collision.Interactor(mapCol * tileW - tileW / 4, mapRow * tileH - tileH / 4,
+                                                         tileW * 1.5, tileH * 1.5, interactorData["event"])
+                    
                 interactorList.append(newInteractor)
+            
+            if "customTriggers" in data and str(mapRow * mapW + mapCol) in data["customTriggers"]:
+                triggerData = data["customTriggers"][str(mapRow * mapW + mapCol)]
+            
+                if "useCollider" in triggerData and triggerData["useCollider"] == True:
+                    newTrigger = collision.Trigger(newCollider.x, newCollider.y,
+                                                         newCollider.width, newCollider.height, triggerData["event"])
+                elif "collider" in triggerData:
+                    intColData = triggerData["collider"]
+                    newTrigger = collision.Trigger(intColData["x"] + (mapCol * tileW), intColData["y"] + (mapRow * tileH), intColData["w"], intColData["h"],
+                                                         triggerData["event"])
+                else:
+                    newTrigger = collision.Trigger(mapCol * tileW - tileW / 4, mapRow * tileH - tileH / 4,
+                                                         tileW * 1.5, tileH * 1.5, triggerData["event"])
+                
+                if "oneUse" in triggerData:
+                    newTrigger.oneUse = triggerData["oneUse"]
+                
+                triggerList.append(newTrigger)
+                    
 
-    return tilemapSurface, colliderList, overlaySurface, interactorList
+    return tilemapSurface, colliderList, overlaySurface, interactorList, triggerList
 
 # print(json.dumps(data, indent=4))
 # print(data["layers"][0]["data"])
