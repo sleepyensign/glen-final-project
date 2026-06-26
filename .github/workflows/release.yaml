@@ -13,6 +13,8 @@ jobs:
   build:
 
     strategy:
+      fail-fast: false
+
       matrix:
         os:
           - ubuntu-latest
@@ -29,35 +31,61 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           pip install -r requirements.txt
-          pip install nuitka
+          pip install pyinstaller
 
-      - name: Build
-        run: python -m nuitka --standalone --assume-yes-for-downloads main.py
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller ^
+            --clean ^
+            --noconfirm ^
+            --onedir ^
+            --name The_Final ^
+            main.py
 
-      - name: Copy assets
+      - name: Build Linux/macOS
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          cp -r maps main.dist/
-          cp -r imgs main.dist/
-          cp -r fonts main.dist/
-          cp -r dialogue main.dist/
+          pyinstaller \
+            --clean \
+            --noconfirm \
+            --onedir \
+            --name The_Final \
+            main.py
 
-      - name: Zip build
+      - name: Copy Assets (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          python -c "import shutil; shutil.make_archive('The_Final-${{ runner.os }}', 'zip', 'main.dist')"
+          Copy-Item maps -Destination dist/The_Final -Recurse
+          Copy-Item media -Destination dist/The_Final -Recurse
+
+      - name: Copy Assets (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cp -r dialogue dist/The_Final/
+          cp -r fonts dist/The_Final/
+          cp -r imgs dist/The_Final/
+          cp -r maps dist/The_Final/
+
+      - name: Create Zip
+        run: |
+          python -c "import shutil; shutil.make_archive('The_Final-${{ runner.os }}','zip','dist','The_Final')"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: The_Final-${{ runner.os }}
+          path: The_Final-${{ runner.os }}.zip
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           files: The_Final-${{ runner.os }}.zip
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: The_Final-${{ runner.os }}
-          path: The_Final-${{ runner.os }}.zip
