@@ -40,13 +40,7 @@ jobs:
 
       - name: Build Windows
         if: runner.os == 'Windows'
-        run: |
-          pyinstaller ^
-            --clean ^
-            --noconfirm ^
-            --onedir ^
-            --name The_Final ^
-            main.py
+        run: pyinstaller --clean --noconfirm --onedir --name The_Final --version-file version_info.txt main.py
 
       - name: Build Linux/macOS
         if: runner.os != 'Windows'
@@ -63,8 +57,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          Copy-Item dialogue -Destination dist/The_Final -Recurse
+          Copy-Item fonts -Destination dist/The_Final -Recurse
+          Copy-Item imgs -Destination dist/The_Final -Recurse
           Copy-Item maps -Destination dist/The_Final -Recurse
-          Copy-Item media -Destination dist/The_Final -Recurse
 
       - name: Copy Assets (Linux/macOS)
         if: runner.os != 'Windows'
