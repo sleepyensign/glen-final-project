@@ -1,7 +1,10 @@
-import pygame, json
+import pygame, json, sys
 from pathlib import Path
 
-GAME_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    GAME_DIR = Path(sys.executable).resolve().parent
+else:
+    GAME_DIR = Path(__file__).resolve().parent
 IMG_DIR = GAME_DIR / "imgs"
 
 # Handles anims for standard sprites and stuff idk yet

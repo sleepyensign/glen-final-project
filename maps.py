@@ -1,7 +1,10 @@
-import pygame, json, collision
+import pygame, json, collision, sys
 from pathlib import Path
 
-GAME_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    GAME_DIR = Path(sys.executable).resolve().parent
+else:
+    GAME_DIR = Path(__file__).resolve().parent
 MAP_DIR = GAME_DIR / "maps"
 IMG_DIR = GAME_DIR / "imgs"
 

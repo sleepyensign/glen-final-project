@@ -4,7 +4,10 @@ import collision, keypress
 from pathlib import Path
 
 # Env Vars
-GAME_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    GAME_DIR = Path(sys.executable).resolve().parent
+else:
+    GAME_DIR = Path(__file__).resolve().parent
 IMG_DIR = GAME_DIR / "imgs"
 DIAL_DIR = GAME_DIR / "dialogue"
 MOVE_SPEED = 1

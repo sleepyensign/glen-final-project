@@ -1,9 +1,12 @@
-import pygame, json
+import pygame, json, sys
 import functions as funcs
 import keypress
 from pathlib import Path
 
-GAME_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    GAME_DIR = Path(sys.executable).resolve().parent
+else:
+    GAME_DIR = Path(__file__).resolve().parent
 FONT_DIR = GAME_DIR / "fonts"
 IMG_DIR = GAME_DIR / "imgs"
 DIAL_DIR = GAME_DIR / "dialogue"
