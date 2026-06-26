@@ -40,7 +40,7 @@ jobs:
 
       - name: Build Windows
         if: runner.os == 'Windows'
-        run: pyinstaller --clean --noconfirm --onedir --name The_Final --version-file version_info.txt main.py
+        run: pyinstaller --clean --noconfirm --onedir --name The_Final main.py
 
       - name: Build Linux/macOS
         if: runner.os != 'Windows'
