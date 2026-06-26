@@ -20,7 +20,7 @@ class Trigger(pygame.Rect):
         self.event = event
         self.oneUse = oneUse
 
-def plrColStatic(plrRect, static, oldPos):
+def plrColStatic(plrRect, static):
     overlap_left = plrRect.right - static.left
     overlap_right = static.right - plrRect.left
     overlap_top = plrRect.bottom - static.top

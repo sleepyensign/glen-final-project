@@ -5,100 +5,123 @@ GAME_DIR = Path(__file__).resolve().parent
 MAP_DIR = GAME_DIR / "maps"
 IMG_DIR = GAME_DIR / "imgs"
 
-# later implement loading different maps through params and stuff
+imgCollider = pygame.image.load(str(IMG_DIR / "spr_collider.png")).convert_alpha()
+
+def eventUnpack(event):
+    newList = []
+    for i in range(len(event)):
+        newList.append(event[i]["value"])
+    return newList
+
 def load_map(mapFile):
     with open(MAP_DIR / mapFile, "r") as file:
         data = json.load(file)
-
-    layers = data["layers"][0]["data"]
-    tileW = data["tilewidth"]
-    tileH = data["tileheight"]
-    mapW = data["width"]
-    mapH = data["height"]
-
-    tilemap = pygame.image.load(str(IMG_DIR) + "/" + data["tilesets"][0]["name"] + ".png").convert_alpha()
-
-    tilemapSurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
-    overlaySurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
-
-    tiles_per_row = tilemap.get_width() // tileW
     
     colliderList = []
     interactorList = []
     triggerList = []
+    imageList = []
+    spawnsDict = {}
 
-    for mapRow in range(mapH):
-        for mapCol in range(mapW):
-            tileNum = layers[mapRow * mapW + mapCol]
+    layers = data["layers"]
+    # get layers
+    for i in range(len(layers)):
+        if layers[i]["type"] == "imagelayer":
+            imageList.append(layers[i])
+        elif layers[i]["name"] == "Base":
+            layerBase = layers[i]["data"]
+        elif layers[i]["name"] == "Overlay":
+            layerOverlay = layers[i]["data"]
+        elif layers[i]["name"] == "CollisionMap":
+            layerCollision = layers[i]["data"]
+        elif layers[i]["name"] == "Colliders":
+            layerColliders = layers[i]
 
-            # Skip empty tiles
-            if tileNum == 0:
-                continue
-            tileNum -= 1
-            
-            srcX = (tileNum % tiles_per_row) * tileW # src is x and y for image surface
-            srcY = (tileNum // tiles_per_row) * tileH
-            
-            sourceRect = pygame.Rect(srcX, srcY, tileW, tileH)
-            
-            if "customOverlays" in data and str(tileNum + 1) in data["customOverlays"]:
-                # create the stuff for the underneath tile
-                unTileNum = int(data["customOverlays"][str(tileNum + 1)])
-                unTileNum -= 1
-                
-                unSrcX = (unTileNum % tiles_per_row) * tileW
-                unSrcY = (unTileNum // tiles_per_row) * tileH
-                
-                unSourceRect = pygame.Rect(unSrcX, unSrcY, tileW, tileH)
-                
-                tilemapSurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), unSourceRect)
-                overlaySurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), sourceRect)
-            else:
-                tilemapSurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), sourceRect)
-            
-            if "customColliders" in data and str(tileNum + 1) in data["customColliders"]:
-                colliderData = data["customColliders"][str(tileNum + 1)]
-                newCollider = pygame.Rect(colliderData["x"] + (mapCol * tileW), colliderData["y"] + (mapRow * tileH),
-                                      colliderData["w"], colliderData["h"])
+            for object in layerColliders["objects"]:
+                newCollider = pygame.Rect(object["x"], object["y"], object["width"], object["height"])
                 colliderList.append(newCollider)
-            
-            if "customInteractors" in data and str(mapRow * mapW + mapCol) in data["customInteractors"]:
-                interactorData = data["customInteractors"][str(mapRow * mapW + mapCol)]
-                
-                if "useCollider" in interactorData and interactorData["useCollider"] == True:
-                    newInteractor = collision.Interactor(newCollider.x, newCollider.y,
-                                                         newCollider.width, newCollider.height, interactorData["event"])
-                elif "collider" in interactorData:
-                    intColData = interactorData["useCollider"]["collider"]
-                    newInteractor = collision.Interactor(intColData["x"], intColData["y"], intColData["w"], intColData["h"],
-                                                         interactorData["event"])
-                else:
-                    newInteractor = collision.Interactor(mapCol * tileW - tileW / 4, mapRow * tileH - tileH / 4,
-                                                         tileW * 1.5, tileH * 1.5, interactorData["event"])
-                    
-                interactorList.append(newInteractor)
-            
-            if "customTriggers" in data and str(mapRow * mapW + mapCol) in data["customTriggers"]:
-                triggerData = data["customTriggers"][str(mapRow * mapW + mapCol)]
-            
-                if "useCollider" in triggerData and triggerData["useCollider"] == True:
-                    newTrigger = collision.Trigger(newCollider.x, newCollider.y,
-                                                         newCollider.width, newCollider.height, triggerData["event"])
-                elif "collider" in triggerData:
-                    intColData = triggerData["collider"]
-                    newTrigger = collision.Trigger(intColData["x"] + (mapCol * tileW), intColData["y"] + (mapRow * tileH), intColData["w"], intColData["h"],
-                                                         triggerData["event"])
-                else:
-                    newTrigger = collision.Trigger(mapCol * tileW - tileW / 4, mapRow * tileH - tileH / 4,
-                                                         tileW * 1.5, tileH * 1.5, triggerData["event"])
-                
-                if "oneUse" in triggerData:
-                    newTrigger.oneUse = triggerData["oneUse"]
-                
-                triggerList.append(newTrigger)
-                    
 
-    return tilemapSurface, colliderList, overlaySurface, interactorList, triggerList
+        elif layers[i]["name"] == "Interactors":
+            layerInteractors = layers[i]
+
+            for object in layerInteractors["objects"]:
+                for prop in object["properties"]:
+                    if prop["name"] == "event":
+                        event = eventUnpack(prop["value"])
+                newInteractor = collision.Interactor(object["x"], object["y"], object["width"], object["height"], event)
+                interactorList.append(newInteractor)
+
+        elif layers[i]["name"] == "Triggers":
+            layerTriggers = layers[i]
+
+            for object in layerTriggers["objects"]:
+                for prop in object["properties"]:
+                    if prop["name"] == "event":
+                        event = eventUnpack(prop["value"])
+                newTrigger = collision.Trigger(object["x"], object["y"], object["width"], object["height"], event)
+                triggerList.append(newTrigger)
+
+        elif layers[i]["name"] == "Spawns":
+            layerSpawns = layers[i]
+
+            for i in range(len(layerSpawns["objects"])):
+                spawnsDict[layerSpawns["objects"][i]["name"]] = (layerSpawns["objects"][i]["x"], layerSpawns["objects"][i]["y"])
+
+    # other data
+    tileW = data["tilewidth"]
+    tileH = data["tileheight"]
+    mapW = data["width"]
+    mapH = data["height"]
+    
+    if "name" in data["tilesets"][0]: # later account for possible multiple tilesets
+        tilemap = pygame.image.load(str(IMG_DIR) + "/" + data["tilesets"][0]["name"] + ".png").convert_alpha()
+        tiles_per_row = tilemap.get_width() // tileW
+
+    tilemapSurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
+    overlaySurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
+    colliderSurface = pygame.Surface((mapW * tileW, mapH * tileH), pygame.SRCALPHA)
+
+    # note to self: src is x and y for image surface
+    if 'layerBase' in locals():
+        for mapRow in range(mapH):
+            for mapCol in range(mapW):
+                tileNum = layerBase[mapRow * mapW + mapCol]
+                # Base layer
+                if tileNum != 0:
+                    tileNum -= 1
+                    srcX = (tileNum % tiles_per_row) * tileW
+                    srcY = (tileNum // tiles_per_row) * tileH
+                    sourceRect = pygame.Rect(srcX, srcY, tileW, tileH)
+                    tilemapSurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), sourceRect)
+    
+    # Image layers will work like this for now
+    for imageLayer in imageList:
+        img = pygame.image.load(str(IMG_DIR) + "/" + imageLayer["name"] + ".png").convert_alpha()
+        tilemapSurface.blit(img, (imageLayer["offsetx"], imageLayer["offsety"]))
+
+    if 'layerOverlay' in locals():
+        for mapRow in range(mapH):
+            for mapCol in range(mapW):
+                ovtileNum = layerOverlay[mapRow * mapW + mapCol]
+                # Overlay layer
+                if ovtileNum != 0:
+                    ovtileNum -= 1
+                    ovSrcX = (ovtileNum % tiles_per_row) * tileW
+                    ovSrcY = (ovtileNum // tiles_per_row) * tileH
+                    ovSourceRect = pygame.Rect(ovSrcX, ovSrcY, tileW, tileH)
+                    overlaySurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), ovSourceRect)
+    
+    if 'layerCollision' in locals():
+        for mapRow in range(mapH):
+            for mapCol in range(mapW):
+                colTileNum = layerCollision[mapRow * mapW + mapCol]
+                # Colliders layer (standard colliders)
+                if colTileNum != 0:
+                    newCollider = pygame.Rect((mapCol * tileW), (mapRow * tileH), tileW, tileH)
+                    colliderSurface.blit(imgCollider, (mapCol * tileW, mapRow * tileH))
+                    colliderList.append(newCollider)
+
+    return tilemapSurface, colliderList, colliderSurface, overlaySurface, interactorList, triggerList, spawnsDict
 
 # print(json.dumps(data, indent=4))
 # print(data["layers"][0]["data"])

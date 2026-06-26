@@ -1,6 +1,6 @@
 import os, sys, pygame, time, random
 import sprite as spr
-import maps, collision, keypress
+import collision, keypress
 from pathlib import Path
 
 # Env Vars
@@ -15,6 +15,7 @@ DEBUG_COLOR = (64, 64, 64)
 MAP_FADE_TIME = 60
 
 # pygame setup
+print("CE: " + str(getattr(pygame, "IS_CE", False)))
 pygame.init()
 pygame.font.init()
 pygame.display.set_caption("The Final")
@@ -27,7 +28,7 @@ clock = pygame.time.Clock()
 font = pygame.font.Font(None, 64)
 fader = pygame.Surface((RENDER_W, RENDER_H), pygame.SRCALPHA)
 
-import dialogue # after so display module is loaded
+import dialogue, maps # after so display module is loaded
 
 # Functions
 
@@ -51,11 +52,11 @@ UIDrawList = []  # later implement
 plr = spr.PlayerSprite(str(IMG_DIR / "David" / "animStruct.json"))
 #charBobNpc = spr.GameSprite(str(IMG_DIR / "Bob" / "animStruct.json"))
 
-plr.rect.center = (300, 400)
+plr.colliderect.center = (300, 400)
 #charBobNpc.rect.center = (300, 200)
 
 # Map setup
-theMap, colliderList, overlayMap, interactorList, triggerList = maps.load_map("map_grasslands_1.json")
+theMap, colliderList, colliderSurface, overlayMap, interactorList, triggerList, spawnsDict = maps.load_map("map_grasslands_1.json")
 
 # vars
 running = True
@@ -100,19 +101,26 @@ while running:
     ### INPUT ###
     keys = pygame.key.get_pressed()
     if takeInput == True:
+        if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+            speedMult = 2
+        else:
+            speedMult = 1
+
         if keys[pygame.K_s]:
-            plr.rect.centery += MOVE_SPEED
+            plr.colliderect.centery += (MOVE_SPEED * speedMult)
         if keys[pygame.K_w]:
-            plr.rect.centery -= MOVE_SPEED
+            plr.colliderect.centery -= (MOVE_SPEED * speedMult)
         if keys[pygame.K_a]:
-            plr.rect.centerx -= MOVE_SPEED
+            plr.colliderect.centerx -= (MOVE_SPEED * speedMult)
         if keys[pygame.K_d]:
-            plr.rect.centerx += MOVE_SPEED
+            plr.colliderect.centerx += (MOVE_SPEED * speedMult)
         
         if keypress.getKeyDown(pygame.K_F3, keys, oldKeys):
             debugMenu = not debugMenu
     
     # Bypass takeInput  
+    if keys[pygame.K_ESCAPE]:
+            running = False
     interactKey = keypress.getKeyDown(pygame.K_RETURN, keys, oldKeys)
     
     ### INTERACTORS ###
@@ -120,8 +128,8 @@ while running:
     if interactKey and not inDialogue and len(plrInteractHits) > 0:
         executeEvent(interactorList[plrInteractHits[0]].event)
     
-    ### TRIGGERS ###
-    plrTriggerHits = plr.rect.collidelistall(triggerList)
+    ### TRIGGERS ### uses colliderect
+    plrTriggerHits = plr.colliderect.collidelistall(triggerList)
     for item in plrTriggerHits:
         eventReturn = executeEvent(triggerList[plrTriggerHits[0]].event)
         if triggerList[plrTriggerHits[0]].oneUse == True:
@@ -130,10 +138,13 @@ while running:
     # After all key stuff
     oldKeys = keys
 
-    ### COLLISION ###
-    plrCollisionHits = plr.rect.collidelistall(colliderList)
+    ### COLLISION ### uses colliderect
+    plrCollisionHits = plr.colliderect.collidelistall(colliderList)
     for item in plrCollisionHits:
-        collision.plrColStatic(plr.rect, colliderList[item], plrOldPos)
+        collision.plrColStatic(plr.colliderect, colliderList[item])
+    
+    # Colliderect to rect
+    plr.rect.x, plr.rect.y = plr.colliderect.x - plr.colliderect.w / 4, plr.colliderect.y - (plr.rect.h - plr.colliderect.h)
 
     # Camera
     tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
@@ -168,12 +179,10 @@ while running:
                     fader.fill((0, 0, 0, 0))
                     takeInput = True
                 else: # no we didn't
-                    theMap, colliderList, overlayMap, interactorList, triggerList = maps.load_map(eventReturn[1])
+                    theMap, colliderList, colliderSurface, overlayMap, interactorList, triggerList, spawnsDict = maps.load_map(eventReturn[1])
                     
-                    # WARNING: If tile size other than 16 is used, this will need revisions
                     mapTileW = theMap.get_width() // 16
-                    plr.rect.centerx = ((int(eventReturn[2]) % mapTileW) * 16)
-                    plr.rect.centery = ((int(eventReturn[2]) // mapTileW) * 16)
+                    plr.colliderect.center = spawnsDict[eventReturn[2]] # spawn point
                     
                     eventReturn[-2] = fc # start new fader
                     eventReturn[-1] = True # don't repeat
@@ -198,11 +207,6 @@ while running:
     # PlayerSprites
     for instance in spr.PlayerSprite.instances:
         instance.direct(fc, plrOldPos)
-    
-    # testing dialogue
-    if fc == 0:
-        dialogueBox.say("Try interacting with some signs!")
-        dialogueBox.say("The text scaling bug is fixed.")
 
     # Frame counter
     fc += 1
@@ -224,6 +228,7 @@ while running:
     if debugMenu:
         for colObj in colliderList:
             renderScreen.blit(debugSurface(colObj, (0, 0, 150, 125)), (colObj.x - camPos[0], colObj.y - camPos[1]))
+        renderScreen.blit(colliderSurface, (-camPos[0], -camPos[1]))
         for intObj in interactorList:
             renderScreen.blit(debugSurface(intObj, (150, 0, 0, 125)), (intObj.x - camPos[0], intObj.y - camPos[1]))
         for trgObj in triggerList:
@@ -232,6 +237,7 @@ while running:
             renderScreen.blit(debugSurface(spriteObj.rect, (0, 0, 150, 125)), (spriteObj.rect.x - camPos[0], spriteObj.rect.y - camPos[1]))
         for spriteObj in spr.PlayerSprite.instances:
             renderScreen.blit(debugSurface(spriteObj.interactor, (150, 0, 0, 125)), (spriteObj.rect.x - camPos[0], spriteObj.rect.y - camPos[1]))
+            renderScreen.blit(debugSurface(spriteObj.colliderect, (150, 150, 150, 125)), (spriteObj.colliderect.x - camPos[0], spriteObj.colliderect.y - camPos[1]))
     
     ## Screen ##
     # Render screen -> screen

@@ -107,9 +107,11 @@ class PlayerSprite(GameSprite):
         PlayerSprite.instances.append(self)
         self.direction = "left"
         self.interactor = self.rect
+        self.colliderect = pygame.Rect(self.rect.x, self.rect.y, self.rect.w, self.rect.h)
     
     def direct(self, fc, plrOldPos):
-        
+        self.colliderect.w, self.colliderect.h = self.rect.w / 1.5, self.rect.h / 8
+
         if plrOldPos[0] > self.rect.centerx:
             newDirection = "left"
         elif plrOldPos[0] < self.rect.centerx:
