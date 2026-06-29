@@ -61,6 +61,7 @@ jobs:
           Copy-Item fonts -Destination dist/The_Final -Recurse
           Copy-Item imgs -Destination dist/The_Final -Recurse
           Copy-Item maps -Destination dist/The_Final -Recurse
+          Copy-Item audio -Destination dist/The_Final -Recurse
 
       - name: Copy Assets (Linux/macOS)
         if: runner.os != 'Windows'
@@ -70,6 +71,7 @@ jobs:
           cp -r fonts dist/The_Final/
           cp -r imgs dist/The_Final/
           cp -r maps dist/The_Final/
+          cp -r audio dist/The_Final/
 
       - name: Create Zip
         run: |
