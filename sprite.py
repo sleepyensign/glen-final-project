@@ -158,9 +158,7 @@ class VFXSprite(GameSprite):
 
        # weird way but it works
         if self.frameOne and self.curAnimIndex < 1:
-            if (frameCount - self.lastFrameUpdate) > 0:
-                VFXSprite.instances.remove(self)
-            else:
-                self.image = VFXSprite.universalSurface
+            VFXSprite.instances.remove(self)
+            GameSprite.instances.remove(self)
         else:
             self.update(frameCount, "vfx", "default")

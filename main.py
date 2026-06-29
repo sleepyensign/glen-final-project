@@ -70,9 +70,9 @@ def executeEvent(event):
         case "playmusic":
             pygame.mixer.music.load(str(MUSIC_DIR / event[1]))
             if len(event) > 2:
-                pygame.mixer.music.play(0, 0.0, event[2])
+                pygame.mixer.music.play(-1, 0.0, event[2])
             else:
-                pygame.mixer.music.play(0, 0.0, 0)
+                pygame.mixer.music.play(-1, 0.0, 0)
 
             printEvent(event)
             return None
@@ -302,6 +302,9 @@ while running:
         renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
     # Map Overlay
     renderScreen.blit(map.overlaySurface, (-camPos[0], -camPos[1]))
+    # VFX Sprite (technically draws for the second time but who cares)
+    for vfxObj in spr.GameSprite.instances:
+        renderScreen.blit(vfxObj.image, (vfxObj.rect.x - camPos[0], vfxObj.rect.y - camPos[1]))
     # Fader
     renderScreen.blit(fader, (0, 0))
     # UI
