@@ -22,7 +22,7 @@ class GameSprite(pygame.sprite.Sprite):
         if isinstance(imgSrc, str):
             
             if imgSrc[-5:] == ".json":
-                # give json to charsprite class
+                # give json to gamesprite class
                 with open(imgSrc, "r") as file:
                     self.animData = json.load(file)
                 
@@ -31,7 +31,7 @@ class GameSprite(pygame.sprite.Sprite):
                     if "anims" in self.animData:
                         for k, v in self.animData["anims"].items():
                             self.images[k] = pygame.image.load(str(IMG_DIR) + "/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
-                        self.image = self.images["idle"]
+                        self.image = self.images["idle"] # may cause future problems
                     if "sheets" in self.animData:
                         for k, v in self.animData["sheets"].items():
                             self.images[k] = pygame.image.load(str(IMG_DIR) + "/" + self.animData["folderName"] + "/" + str(v["src"])).convert_alpha()
@@ -59,11 +59,12 @@ class GameSprite(pygame.sprite.Sprite):
                 spriteAnimData = self.animData["sheets"][sheet]["anims"][anim]
                 spriteW, spriteH = self.animData["sheets"][sheet]["w"], self.animData["sheets"][sheet]["h"]
                 spriteRow = 0
-                spriteFr = 5
+                spriteFr = 5 # default
                 
                 # if new anim reset index
                 if self.curAnim != anim:
                     self.curAnimIndex = 0
+                    self.lastFrameUpdate = frameCount
                     self.curAnim = anim
                     if "flip" in spriteAnimData:
                         self.flipped = spriteAnimData["flip"]
@@ -76,11 +77,19 @@ class GameSprite(pygame.sprite.Sprite):
                 if "from" and "to" in spriteAnimData:
                     # animation stuff
                     
-                    if (frameCount - self.lastFrameUpdate) > spriteFr:
-                        self.curAnimIndex = (
-                            self.curAnimIndex + 1
-                        ) % (spriteAnimData["to"] - spriteAnimData["from"] + 1)
-                        self.lastFrameUpdate = frameCount
+                    if isinstance(spriteFr, int): # constant framerate
+                        if (frameCount - self.lastFrameUpdate) > spriteFr:
+                            self.curAnimIndex = (
+                                self.curAnimIndex + 1
+                            ) % (spriteAnimData["to"] - spriteAnimData["from"] + 1)
+                            self.lastFrameUpdate = frameCount
+                    elif isinstance(spriteFr, list): # framerate per frame index
+                        if (frameCount - self.lastFrameUpdate) > spriteFr[self.curAnimIndex]:
+                            self.curAnimIndex = (
+                                self.curAnimIndex + 1
+                            ) % (spriteAnimData["to"] - spriteAnimData["from"] + 1)
+                            self.lastFrameUpdate = frameCount
+
                         
                     # apply the image from sprs
                     imgSurface = pygame.Surface((spriteW, spriteH), pygame.SRCALPHA)
@@ -132,3 +141,26 @@ class PlayerSprite(GameSprite):
             self.direction = newDirection
             
         self.update(fc, newDirection, "regular")
+
+class VFXSprite(GameSprite):
+    instances = []
+    universalSurface = pygame.surface.Surface((0, 0), pygame.SRCALPHA)
+    
+    def __init__(self, imgSrc):
+        super().__init__(imgSrc)
+        VFXSprite.instances.append(self)
+
+        self.frameOne = False
+
+    def next(self, frameCount):
+        if self.curAnimIndex > 1:
+            self.frameOne = True
+
+       # weird way but it works
+        if self.frameOne and self.curAnimIndex < 1:
+            if (frameCount - self.lastFrameUpdate) > 0:
+                VFXSprite.instances.remove(self)
+            else:
+                self.image = VFXSprite.universalSurface
+        else:
+            self.update(frameCount, "vfx", "default")

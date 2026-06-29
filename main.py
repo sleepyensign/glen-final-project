@@ -10,6 +10,8 @@ else:
     GAME_DIR = Path(__file__).resolve().parent
 IMG_DIR = GAME_DIR / "imgs"
 DIAL_DIR = GAME_DIR / "dialogue"
+MUSIC_DIR = GAME_DIR / "audio" / "music"
+SFX_DIR = GAME_DIR / "audio" / "sfx"
 MOVE_SPEED = 1
 RENDER_W = 320
 RENDER_H = 180
@@ -21,6 +23,7 @@ MAP_FADE_TIME = 60
 print("CE: " + str(getattr(pygame, "IS_CE", False)))
 pygame.init()
 pygame.font.init()
+pygame.mixer.init()
 pygame.display.set_caption("The Final")
 screen = pygame.display.set_mode(
     (pygame.display.Info().current_w, pygame.display.Info().current_h),
@@ -40,26 +43,85 @@ def debugSurface(obj, color):
     newSurface.fill(color)
     return newSurface
 
+def printEvent(event):
+    if len(event) > 2:
+        print(str(fc) + " - Event recieved: " + str(event[0]), str(event[1]))
+    else:
+        print(str(fc) + " - Event recieved: " + str(event[0]))
+        
+
 def executeEvent(event):
-    if event[0] == "dialogue":
-        dialogueBox.say(event[1])
-        return None
-    elif event[0] == "mapchange":
-        event.append(fc)
-        event.append(False)
-        return event
+    
+    match event[0]:
+
+        case "dialogue":
+            dialogueBox.say(event[1])
+
+            printEvent(event)
+            return None
+        
+        case "mapchange":
+            event.append(fc)
+            event.append(False)
+
+            printEvent(event)
+            return event
+        
+        case "playmusic":
+            pygame.mixer.music.load(str(MUSIC_DIR / event[1]))
+            if len(event) > 2:
+                pygame.mixer.music.play(0, 0.0, event[2])
+            else:
+                pygame.mixer.music.play(0, 0.0, 0)
+
+            printEvent(event)
+            return None
+        
+        case "stopmusic":
+            pygame.mixer.music.stop()
+
+            printEvent(event)
+            return None
+
+        case "fademusic":
+            pygame.mixer.music.fadeout(1000) # hardcoded for now
+
+            printEvent(event)
+            return None
+
+        case "musicvolume":
+            pygame.mixer.music.set_volume(event[1])
+
+            printEvent(event)
+            return None
+        
+        case "playsfx":
+            if event[2] != None: # prob broken
+                SFXDict[event[1]].set_volume(event[2])
+            SFXDict[event[1]].play()
+
+            printEvent(event)
+            return None
+
+        case _:
+            print("WARNING no matching event case found for " + str(event[0]))
+
+def execEventList(eventList): # because of eventReturn system only 1 event that returns a value can be executed at a time
+    if eventList != None:
+        for i in range(len(eventList)):
+            executeEvent(eventList[i])
+
+# SFX
+SFXDict = {}
+for file in os.listdir(SFX_DIR):
+    SFXDict[file[:-4]] = pygame.mixer.Sound(str(SFX_DIR / file))
 
 # Sprite setup
 UIDrawList = []  # later implement
 
 plr = spr.PlayerSprite(str(IMG_DIR / "David" / "animStruct.json"))
-#charBobNpc = spr.GameSprite(str(IMG_DIR / "Bob" / "animStruct.json"))
 
 plr.colliderect.center = (300, 400)
-#charBobNpc.rect.center = (300, 200)
-
-# Map setup
-theMap, colliderList, colliderSurface, overlayMap, interactorList, triggerList, spawnsDict = maps.load_map("map_grasslands_1.json")
 
 # vars
 running = True
@@ -73,8 +135,12 @@ eventReturn = None
 # old vars
 oldKeys = pygame.key.get_pressed()
 
-testText2 = "This is a string I made to test several systems in this stupid game."
+# Dialogue Setup
 dialogueBox = dialogue.Dialoguer((0.5 * RENDER_W, 0.25 * RENDER_H), fc)
+
+# Map setup
+map = maps.Map("map_grasslands_1.json")
+execEventList(map.onLoadEventList)
 
 while running:
 
@@ -90,6 +156,9 @@ while running:
     plrOldPos = (plr.rect.centerx, plr.rect.centery)
     oldInDialogue = inDialogue
     
+    # Frame counter
+    fc += 1
+
     # Input control
     if len(dialogueBox.queue) > 0:
         inDialogue = True
@@ -117,34 +186,39 @@ while running:
             plr.colliderect.centerx -= (MOVE_SPEED * speedMult)
         if keys[pygame.K_d]:
             plr.colliderect.centerx += (MOVE_SPEED * speedMult)
-        
-        if keypress.getKeyDown(pygame.K_F3, keys, oldKeys):
-            debugMenu = not debugMenu
+
+        if keypress.getKeyDown(pygame.K_e, keys, oldKeys):
+            testVFX = spr.VFXSprite(str(IMG_DIR / "VFX" / "vfx_testvfx.json"))
+            testVFX.rect.center = (plr.rect.centerx, plr.rect.centery)
     
     # Bypass takeInput  
     if keys[pygame.K_ESCAPE]:
             running = False
+    
+    if keypress.getKeyDown(pygame.K_F3, keys, oldKeys):
+            debugMenu = not debugMenu
+
     interactKey = keypress.getKeyDown(pygame.K_RETURN, keys, oldKeys)
     
     ### INTERACTORS ###
-    plrInteractHits = plr.interactor.collidelistall(interactorList)
+    plrInteractHits = plr.interactor.collidelistall(map.interactorList)
     if interactKey and not inDialogue and len(plrInteractHits) > 0:
-        executeEvent(interactorList[plrInteractHits[0]].event)
+        executeEvent(map.interactorList[plrInteractHits[0]].event)
     
     ### TRIGGERS ### uses colliderect
-    plrTriggerHits = plr.colliderect.collidelistall(triggerList)
+    plrTriggerHits = plr.colliderect.collidelistall(map.triggerList)
     for item in plrTriggerHits:
-        eventReturn = executeEvent(triggerList[plrTriggerHits[0]].event)
-        if triggerList[plrTriggerHits[0]].oneUse == True:
-            triggerList.remove(triggerList[plrTriggerHits[0]]) # works???
+        eventReturn = executeEvent(map.triggerList[plrTriggerHits[0]].event)
+        if map.triggerList[plrTriggerHits[0]].oneUse == True:
+            map.triggerList.remove(map.triggerList[plrTriggerHits[0]]) # works???
     
     # After all key stuff
     oldKeys = keys
 
     ### COLLISION ### uses colliderect
-    plrCollisionHits = plr.colliderect.collidelistall(colliderList)
+    plrCollisionHits = plr.colliderect.collidelistall(map.colliderList)
     for item in plrCollisionHits:
-        collision.plrColStatic(plr.colliderect, colliderList[item])
+        collision.plrColStatic(plr.colliderect, map.colliderList[item])
     
     # Colliderect to rect
     plr.rect.x, plr.rect.y = plr.colliderect.x - plr.colliderect.w / 4, plr.colliderect.y - (plr.rect.h - plr.colliderect.h)
@@ -156,13 +230,13 @@ while running:
     # Camera screen borders
     if plr.rect.centerx < tempCamAdd[0]:
         camPos[0] = 0
-    elif plr.rect.centerx > theMap.width - tempCamAdd[0]:
-        camPos[0] = theMap.width - tempCamAdd[0] * 2
+    elif plr.rect.centerx > map.tilemapSurface.width - tempCamAdd[0]:
+        camPos[0] = map.tilemapSurface.width - tempCamAdd[0] * 2
         
     if plr.rect.centery < tempCamAdd[1]:
         camPos[1] = 0
-    elif plr.rect.centery > theMap.height - tempCamAdd[1]:
-        camPos[1] = theMap.height - tempCamAdd[1] * 2
+    elif plr.rect.centery > map.tilemapSurface.height - tempCamAdd[1]:
+        camPos[1] = map.tilemapSurface.height - tempCamAdd[1] * 2
 
     ### MAP EVENTS ###
     if isinstance(eventReturn, list): # eventReturn is [type, data, data2, etc, start fc, repeat fade bool]
@@ -173,6 +247,8 @@ while running:
                 newTransparency = 255 - (fc - eventReturn[-2]) * 4.25
             else: # fade down
                 newTransparency = (fc - eventReturn[-2]) * 4.25
+                if newTransparency == 0:
+                    execEventList(map.onLeaveEventList)
             
             if newTransparency <= 255 and newTransparency >= 0:
                 fader.fill((0, 0, 0, newTransparency))
@@ -182,10 +258,11 @@ while running:
                     fader.fill((0, 0, 0, 0))
                     takeInput = True
                 else: # no we didn't
-                    theMap, colliderList, colliderSurface, overlayMap, interactorList, triggerList, spawnsDict = maps.load_map(eventReturn[1])
+                    map.loadMap(eventReturn[1])
+                    execEventList(map.onLoadEventList)
                     
-                    mapTileW = theMap.get_width() // 16
-                    plr.colliderect.center = spawnsDict[eventReturn[2]] # spawn point
+                    mapTileW = map.tilemapSurface.get_width() // 16
+                    plr.colliderect.center = map.spawnsDict[eventReturn[2]] # spawn point
                     
                     eventReturn[-2] = fc # start new fader
                     eventReturn[-1] = True # don't repeat
@@ -197,44 +274,46 @@ while running:
     if debugMenu == True:
         fpsTest = font.render("frame " + str(fc), True, DEBUG_COLOR)
         tickText = font.render("second " + str(pygame.time.get_ticks() / 1000), True, DEBUG_COLOR)
-        gridText = font.render("pos: " + str(camPos), True, DEBUG_COLOR)
-        posText = font.render("plr: " + str((plr.rect.centerx, plr.rect.centery)), True, DEBUG_COLOR)
+        gridText = font.render("campos: " + str(camPos), True, DEBUG_COLOR)
+        posText = font.render("plrpos: " + str((plr.rect.centerx, plr.rect.centery)), True, DEBUG_COLOR)
         collisionText = font.render("colliding: " + str(plrCollisionHits), True, DEBUG_COLOR)
         interactorText = font.render("interact: " + str(plrInteractHits), True, DEBUG_COLOR)
         textText = font.render("text: " + str(dialogueBox.text[:10] + "..."), True, DEBUG_COLOR)
         debugQueue = [queueItem[:5] + "..." for queueItem in dialogueBox.queue]
         queueText = font.render("queue: " + str(debugQueue), True, DEBUG_COLOR)
-        debugText.extend([fpsTest, tickText, gridText, posText, collisionText, interactorText, textText, queueText])
+        animIndexText = font.render("aindex: " + str(plr.curAnimIndex), True, DEBUG_COLOR)
+        debugText.extend([fpsTest, tickText, gridText, posText, collisionText, interactorText, textText, queueText, animIndexText])
     
     ## Sprite ##
     # PlayerSprites
     for instance in spr.PlayerSprite.instances:
         instance.direct(fc, plrOldPos)
 
-    # Frame counter
-    fc += 1
+    ## VFX ##
+    for instance in spr.VFXSprite.instances:
+        instance.next(fc)
 
     ### BLIT ###
     ## Render Screen ##
     # Map
-    renderScreen.blit(theMap, (-camPos[0], -camPos[1]))
+    renderScreen.blit(map.tilemapSurface, (-camPos[0], -camPos[1]))
     # Sprite
     for sprObj in spr.GameSprite.instances:
         renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
     # Map Overlay
-    renderScreen.blit(overlayMap, (-camPos[0], -camPos[1]))
+    renderScreen.blit(map.overlaySurface, (-camPos[0], -camPos[1]))
     # Fader
     renderScreen.blit(fader, (0, 0))
     # UI
     renderScreen.blit(dialogueBox.update(fc, interactKey), (0.25 * RENDER_W, 0.75 * RENDER_H))
     # Debug Colliders
     if debugMenu:
-        for colObj in colliderList:
+        for colObj in map.colliderList:
             renderScreen.blit(debugSurface(colObj, (0, 0, 150, 125)), (colObj.x - camPos[0], colObj.y - camPos[1]))
-        renderScreen.blit(colliderSurface, (-camPos[0], -camPos[1]))
-        for intObj in interactorList:
+        renderScreen.blit(map.colliderSurface, (-camPos[0], -camPos[1]))
+        for intObj in map.interactorList:
             renderScreen.blit(debugSurface(intObj, (150, 0, 0, 125)), (intObj.x - camPos[0], intObj.y - camPos[1]))
-        for trgObj in triggerList:
+        for trgObj in map.triggerList:
             renderScreen.blit(debugSurface(trgObj, (0, 150, 0, 125)), (trgObj.x - camPos[0], trgObj.y - camPos[1]))
         for spriteObj in spr.GameSprite.instances:
             renderScreen.blit(debugSurface(spriteObj.rect, (0, 0, 150, 125)), (spriteObj.rect.x - camPos[0], spriteObj.rect.y - camPos[1]))

@@ -12,6 +12,7 @@ IMG_DIR = GAME_DIR / "imgs"
 DIAL_DIR = GAME_DIR / "dialogue"
 
 DIALOGUE_WAIT = 0
+UI_TRANSPARENCY = 175
 
 with open(DIAL_DIR / "dialogue.json", "r") as file:
     dialogue = json.load(file)
@@ -50,7 +51,7 @@ class Dialoguer(pygame.surface.Surface):
         self.queue = []
     
     def say(self, text="No text in dialoguer.say()"):
-        self.fill((0, 0, 0, 125))
+        self.fill((0, 0, 0, UI_TRANSPARENCY))
         
         splitText = text.split("-")
         if len(splitText) > 1:
@@ -66,7 +67,7 @@ class Dialoguer(pygame.surface.Surface):
     def update(self, fc, nextDialogue):
         keys = pygame.key.get_pressed()
         
-        self.fill((0, 0, 0, 125))
+        self.fill((0, 0, 0, UI_TRANSPARENCY))
         
         canContinue = fc - self.startFrame > len(self.text) + DIALOGUE_WAIT
         

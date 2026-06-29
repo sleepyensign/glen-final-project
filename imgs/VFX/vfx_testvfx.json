@@ -1,0 +1,19 @@
+{
+    "folderName": "VFX/vfximgs",
+    "sheets": {
+        "default": {
+            "src": "vfx_testvfx.png",
+            "w": 16,
+            "h": 16,
+            "anims": {
+                "vfx": {
+                    "from": 0,
+                    "to": 9,
+                    "fr": [
+                        5, 5, 5, 5, 15, 10, 10, 10, 10, 10
+                    ]
+                }
+            }
+        }
+    }
+}

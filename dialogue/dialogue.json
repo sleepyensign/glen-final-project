@@ -34,9 +34,12 @@
         "dlg_sign_grasslands_5": [
             "\"This way - blueworld.\""
         ],
+        "dlg_sign_grasslands_update": [
+            "\"press e to spawn a vfx\"",
+            "ok i will do that says me but also you"
+        ],
         "dlg_sign_blueworld_1": [
-            "\"This way -...\"",
-            "\"...something...\""
+            "\"This way - titlecard.\""
         ],
         "dlg_sign_blueworld_2": [
             "\"This way - grasslands.\""
