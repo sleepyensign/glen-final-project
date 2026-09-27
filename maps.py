@@ -22,10 +22,17 @@ def eventListUnpack(eventList):
         newEventList.append(eventUnpack(eventList[i]["value"]))
     return newEventList
 
+class SurfPosed(object): # used for sorting overlays
+    def __init__(self, surfLike, x, y):
+        self.surface = surfLike
+        self.x = x
+        self.y = y
+
 class Map(object):
     def __init__(self, mapFile=None):
         super().__init__()
 
+        self.overlayList = []
         self.colliderList = []
         self.interactorList = []
         self.triggerList = []
@@ -33,7 +40,7 @@ class Map(object):
         self.spawnsDict = {}
 
         self.tilemapSurface = pygame.Surface((0, 0), pygame.SRCALPHA)
-        self.overlaySurface = pygame.Surface((0, 0), pygame.SRCALPHA)
+        self.overlaySurface = pygame.Surface((0, 0), pygame.SRCALPHA) # only for overlay tiles that ignore y
         self.colliderSurface = pygame.Surface((0, 0), pygame.SRCALPHA)
 
         self.onLoadEventList = None
@@ -46,6 +53,7 @@ class Map(object):
         with open(MAP_DIR / mapFile, "r") as file:
             data = json.load(file)
         
+        self.overlayList = []
         self.colliderList = []
         self.interactorList = []
         self.triggerList = []
@@ -61,6 +69,8 @@ class Map(object):
                 layerBase = layers[i]["data"]
             elif layers[i]["name"] == "Overlay":
                 layerOverlay = layers[i]["data"]
+            elif layers[i]["name"] == "OverlayIgnore":
+                layerOverlayIgnore = layers[i]["data"]
             elif layers[i]["name"] == "CollisionMap":
                 layerCollision = layers[i]["data"]
             elif layers[i]["name"] == "Colliders":
@@ -131,14 +141,30 @@ class Map(object):
         if 'layerOverlay' in locals():
             for mapRow in range(mapH):
                 for mapCol in range(mapW):
-                    ovtileNum = layerOverlay[mapRow * mapW + mapCol]
+                    ovTileNum = layerOverlay[mapRow * mapW + mapCol]
                     # Overlay layer
-                    if ovtileNum != 0:
-                        ovtileNum -= 1
-                        ovSrcX = (ovtileNum % tiles_per_row) * tileW
-                        ovSrcY = (ovtileNum // tiles_per_row) * tileH
+                    if ovTileNum != 0:
+                        ovTileNum -= 1
+                        ovSrcX = (ovTileNum % tiles_per_row) * tileW
+                        ovSrcY = (ovTileNum // tiles_per_row) * tileH
                         ovSourceRect = pygame.Rect(ovSrcX, ovSrcY, tileW, tileH)
-                        self.overlaySurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), ovSourceRect)
+                        newOvSurface = pygame.Surface((tileW, tileH), pygame.SRCALPHA)
+                        newOvSurface.blit(tilemap, (0, 0), ovSourceRect)
+                        newSurfPosed = SurfPosed(newOvSurface, mapCol * tileW, mapRow * tileH)
+                        self.overlayList.append(newSurfPosed)
+        
+        if 'layerOverlayIgnore' in locals():
+            for mapRow in range(mapH):
+                for mapCol in range(mapW):
+                    ovIgTileNum = layerOverlayIgnore[mapRow * mapW + mapCol]
+                    # Overlay ignore y
+                    if ovIgTileNum != 0:
+                        ovIgTileNum -= 1
+                        ovIgSrcX = (ovIgTileNum % tiles_per_row) * tileW
+                        ovIgSrcY = (ovIgTileNum // tiles_per_row) * tileH
+                        ovIgSourceRect = pygame.Rect(ovIgSrcX, ovIgSrcY, tileW, tileH)
+                        self.overlaySurface.blit(tilemap, (mapCol * tileW, mapRow * tileH), ovIgSourceRect)
+
         
         if 'layerCollision' in locals():
             for mapRow in range(mapH):

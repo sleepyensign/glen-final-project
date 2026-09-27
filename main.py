@@ -13,11 +13,12 @@ DIAL_DIR = GAME_DIR / "dialogue"
 MUSIC_DIR = GAME_DIR / "audio" / "music"
 SFX_DIR = GAME_DIR / "audio" / "sfx"
 MOVE_SPEED = 1
-RENDER_W = 320
+RENDER_W = 320 # 240 = 3:4 | 320 = 16:9
 RENDER_H = 180
 FRAMERATE = 60
 DEBUG_COLOR = (64, 64, 64)
 MAP_FADE_TIME = 60
+DISPLAY = 0
 
 # pygame setup
 print("CE: " + str(getattr(pygame, "IS_CE", False)))
@@ -26,13 +27,27 @@ pygame.font.init()
 pygame.mixer.init()
 pygame.display.set_caption("The Final")
 screen = pygame.display.set_mode(
-    (pygame.display.Info().current_w, pygame.display.Info().current_h),
+    (pygame.display.get_desktop_sizes()[DISPLAY][0], pygame.display.get_desktop_sizes()[DISPLAY][1]),
     pygame.FULLSCREEN,
+    display=DISPLAY
 )
+print(pygame.display.get_desktop_sizes())
+print(pygame.display.get_num_displays())
 renderScreen = pygame.Surface((RENDER_W, RENDER_H), pygame.SRCALPHA)
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 64)
 fader = pygame.Surface((RENDER_W, RENDER_H), pygame.SRCALPHA)
+
+# Screen scaling
+WINDOW_W, WINDOW_H = screen.get_size()
+
+SCREEN_SCALE = min(WINDOW_W / RENDER_W, WINDOW_H / RENDER_H)
+
+SCREEN_SCALED_W = int(RENDER_W * SCREEN_SCALE)
+SCREEN_SCALED_H = int(RENDER_H * SCREEN_SCALE)
+
+SCREEN_OFFSET_X = (WINDOW_W - SCREEN_SCALED_W) // 2
+SCREEN_OFFSET_Y = (WINDOW_H - SCREEN_SCALED_H) // 2
 
 import dialogue, maps # after so display module is loaded
 
@@ -49,7 +64,6 @@ def printEvent(event):
     else:
         print(str(fc) + " - Event recieved: " + str(event[0]))
         
-
 def executeEvent(event):
     
     match event[0]:
@@ -136,7 +150,7 @@ eventReturn = None
 oldKeys = pygame.key.get_pressed()
 
 # Dialogue Setup
-dialogueBox = dialogue.Dialoguer((0.5 * RENDER_W, 0.25 * RENDER_H), fc)
+dialogueBox = dialogue.Dialoguer((0.5 * RENDER_W, 0.25 * RENDER_H), fc) # 160, 45 = 4:3
 
 # Map setup
 map = maps.Map("map_grasslands_1.json")
@@ -227,6 +241,7 @@ while running:
     tempCamAdd = (RENDER_W / 2, RENDER_H / 2)
     camPos[0] = plr.rect.centerx - tempCamAdd[0]
     camPos[1] = plr.rect.centery - tempCamAdd[1]
+
     # Camera screen borders
     if plr.rect.centerx < tempCamAdd[0]:
         camPos[0] = 0
@@ -272,8 +287,9 @@ while running:
     # Debug #
     debugText = []
     if debugMenu == True:
-        fpsTest = font.render("frame " + str(fc), True, DEBUG_COLOR)
-        tickText = font.render("second " + str(pygame.time.get_ticks() / 1000), True, DEBUG_COLOR)
+        fpsText = font.render("fps: " + str(int(clock.get_fps())), True, DEBUG_COLOR)
+        frameText = font.render("frame: " + str(fc), True, DEBUG_COLOR)
+        tickText = font.render("second: " + str(pygame.time.get_ticks() / 1000), True, DEBUG_COLOR)
         gridText = font.render("campos: " + str(camPos), True, DEBUG_COLOR)
         posText = font.render("plrpos: " + str((plr.rect.centerx, plr.rect.centery)), True, DEBUG_COLOR)
         collisionText = font.render("colliding: " + str(plrCollisionHits), True, DEBUG_COLOR)
@@ -282,7 +298,8 @@ while running:
         debugQueue = [queueItem[:5] + "..." for queueItem in dialogueBox.queue]
         queueText = font.render("queue: " + str(debugQueue), True, DEBUG_COLOR)
         animIndexText = font.render("aindex: " + str(plr.curAnimIndex), True, DEBUG_COLOR)
-        debugText.extend([fpsTest, tickText, gridText, posText, collisionText, interactorText, textText, queueText, animIndexText])
+        vfxText = font.render("vfx: " + str(len(spr.VFXSprite.instances)), True, DEBUG_COLOR)
+        debugText.extend([fpsText, frameText, tickText, gridText, posText, collisionText, interactorText, textText, queueText, animIndexText, vfxText])
     
     ## Sprite ##
     # PlayerSprites
@@ -295,20 +312,33 @@ while running:
 
     ### BLIT ###
     ## Render Screen ##
+
     # Map
     renderScreen.blit(map.tilemapSurface, (-camPos[0], -camPos[1]))
-    # Sprite
-    for sprObj in spr.GameSprite.instances:
-        renderScreen.blit(sprObj.image, (sprObj.rect.x - camPos[0], sprObj.rect.y - camPos[1]))
-    # Map Overlay
+
+    # Sprite & Map Overlay (order based on y)
+    compoundDrawList = sorted(map.overlayList + spr.GameSprite.instances,
+    key=lambda obj: obj.y + obj.surface.get_rect().h + 1 if isinstance(obj, maps.SurfPosed) else obj.rect.bottom)
+    
+    for drawObj in compoundDrawList:
+        if isinstance(drawObj, maps.SurfPosed):
+            renderScreen.blit(drawObj.surface, (drawObj.x - camPos[0], drawObj.y - camPos[1]))
+        else:
+            renderScreen.blit(drawObj.image, (drawObj.rect.x - camPos[0], drawObj.rect.y - camPos[1]))
+
+    # Overlay ignore y
     renderScreen.blit(map.overlaySurface, (-camPos[0], -camPos[1]))
+
     # VFX Sprite (technically draws for the second time but who cares)
-    for vfxObj in spr.GameSprite.instances:
+    for vfxObj in spr.VFXSprite.instances:
         renderScreen.blit(vfxObj.image, (vfxObj.rect.x - camPos[0], vfxObj.rect.y - camPos[1]))
+    
     # Fader
     renderScreen.blit(fader, (0, 0))
+    
     # UI
-    renderScreen.blit(dialogueBox.update(fc, interactKey), (0.25 * RENDER_W, 0.75 * RENDER_H))
+    renderScreen.blit(dialogueBox.update(fc, interactKey), (0.25 * RENDER_W, 0.75 * RENDER_H)) # 0.25 * RENDER_W, 0.75 * RENDER_H | new = 0.25 * 160 & 180 - 45 | 4:3 = 40, 135
+
     # Debug Colliders
     if debugMenu:
         for colObj in map.colliderList:
@@ -326,8 +356,10 @@ while running:
     
     ## Screen ##
     # Render screen -> screen
-    renderScreenScaled = pygame.transform.scale(renderScreen, screen.get_size())
-    screen.blit(renderScreenScaled, (0, 0))
+    renderScreenScaled = pygame.transform.scale(renderScreen, (SCREEN_SCALED_W, SCREEN_SCALED_H))
+    screen.fill("black")
+    screen.blit(renderScreenScaled, (SCREEN_OFFSET_X, SCREEN_OFFSET_Y))
+
     # Debug menu
     for i in range(len(debugText)):
         screen.blit(debugText[i], (0, 60 * i))
